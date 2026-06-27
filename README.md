@@ -50,6 +50,28 @@ built. **Linux is the first supported platform**; the architecture is being kept
        (define activities, set limits, queue commands)        └───────────────────────────┘
 ```
 
+## Installing the agent
+
+The agent ships as a **single binary** that is its own installer — the endpoint needs no Python.
+
+```bash
+# Build the binary (run on each target OS — PyInstaller does not cross-compile)
+cd agent
+python3 -m venv .venv && .venv/bin/pip install -e '.[build]'
+./packaging/build.sh            # -> agent/dist/ludex
+
+# Install on the endpoint (prompts for the backend URL + shared key, validates, then
+# registers a per-user service: systemd user unit on Linux, LaunchAgent on macOS)
+./dist/ludex install
+
+# Other commands
+./dist/ludex detect-app         # turn a running process into an activity definition
+./dist/ludex uninstall          # remove the service
+```
+
+The URL + shared key are stored only in the service definition's environment (no config file);
+see [`docs/architecture.md`](docs/architecture.md) §9.
+
 ## Documentation
 
 - [`docs/architecture.md`](docs/architecture.md) — full system design, agent lifecycle, backend

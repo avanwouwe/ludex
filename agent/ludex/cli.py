@@ -34,11 +34,26 @@ def cmd_run(args):
 
 def cmd_install(args):
     from .platform import get_platform
+    from .transport import BackendClient, BackendError
     url = args.url or input("Backend URL (/exec): ").strip()
     token = args.token or getpass.getpass("Shared key: ").strip()
     if not url or not token:
         sys.exit("both backend URL and shared key are required")
+
+    # Validate before registering anything — a bad URL/key should fail here, not silently
+    # later inside a background service.
+    print("Validating backend connection...")
+    try:
+        res = BackendClient(url, token).call_one("GetConfig", {})
+    except BackendError as e:
+        sys.exit(f"could not reach backend: {e}")
+    if not res.ok:
+        sys.exit(f"backend rejected credentials: {res.error}")
+    n = len(res.data.get("activity_types", []))
+    print(f"  OK — backend reachable ({n} activit{'y' if n == 1 else 'ies'} defined)")
+
     print(get_platform().install_service(url, token))
+    print("Installed. The agent is now running and will start on login.")
 
 
 def cmd_uninstall(args):
