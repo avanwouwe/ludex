@@ -320,35 +320,6 @@ function table_(spec) {
   };
 }
 
-// Re-lay-out a sheet to match `newHeaders`, preserving data by COLUMN NAME. Safe across column
-// reordering/additions/removals; idempotent (no-op once the header already matches). Run from setup.
-function migrateSheet_(sheet, newHeaders) {
-  var lastRow = sheet.getLastRow();
-  var lastCol = Math.max(sheet.getLastColumn(), 1);
-  var oldHeaders = sheet.getRange(1, 1, 1, lastCol).getValues()[0].map(function (h) { return String(h); });
-
-  var same = (oldHeaders.length === newHeaders.length) &&
-             newHeaders.every(function (h, i) { return oldHeaders[i] === h; });
-  if (same) return;
-
-  var records = [];
-  if (lastRow >= 2) {
-    sheet.getRange(2, 1, lastRow - 1, lastCol).getValues().forEach(function (row) {
-      var rec = {};
-      oldHeaders.forEach(function (h, i) { rec[h] = row[i]; });
-      records.push(rec);
-    });
-  }
-  sheet.clear();
-  sheet.getRange(1, 1, 1, newHeaders.length).setValues([newHeaders]);
-  if (records.length) {
-    var out = records.map(function (rec) {
-      return newHeaders.map(function (h) { return rec[h] !== undefined ? rec[h] : ""; });
-    });
-    sheet.getRange(2, 1, out.length, newHeaders.length).setValues(out);
-  }
-}
-
 // ===== Utilities =====
 function requireAdmin_(p) {
   if (p.admin_password !== ADMIN_PASSWORD_()) throw new Error("unauthorized: bad admin_password");
@@ -376,12 +347,7 @@ function json_(obj) {
 
 // ===== One-time setup: create tabs + seed config defaults =====
 function setup() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  Object.keys(SHEETS).forEach(function (k) {
-    var spec = SHEETS[k];
-    table_(spec);  // ensure the sheet exists
-    migrateSheet_(ss.getSheetByName(spec.name), spec.headers);
-  });
+  Object.keys(SHEETS).forEach(function (k) { table_(SHEETS[k]); });  // ensure each sheet exists
   var ct = table_(SHEETS.config);
   var existing = {};
   ct.rows().forEach(function (r) { existing[r.key] = true; });

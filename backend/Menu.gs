@@ -24,7 +24,7 @@ function buildMenu_() {
         .addItem("② How to deploy the backend…", "ludexDeployHelp");
   } else {
     menu.addItem("Refresh dashboard", "ludexRefreshDashboard")
-        .addItem("Usage chart…", "ludexUsageChart")
+        .addItem("Activity analysis…", "ludexUsageChart")
         .addItem("Send a command…", "ludexSendCommand")
         .addItem("Edit names", "ludexEditNames")
         .addItem("Edit activity limits…", "ludexLimits")

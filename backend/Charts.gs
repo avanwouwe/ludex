@@ -12,7 +12,7 @@ function ludexUsageChart() {
     return;
   }
   var h = HtmlService.createHtmlOutputFromFile("UsageChart").setWidth(360).setHeight(170);
-  SpreadsheetApp.getUi().showModalDialog(h, "Ludex — usage chart");
+  SpreadsheetApp.getUi().showModalDialog(h, "Ludex — activity analysis");
 }
 
 function getChartUsers() {
@@ -67,14 +67,19 @@ function ludexBuildUsageChart(user_id) {
 
   var cols = pivot.header.length;
   sheet.getRange(1, 1, 1, cols).setValues([pivot.header]).setFontWeight("bold");
-  sheet.getRange(2, 1, pivot.rows.length, cols).setValues(pivot.rows);
+  // Write the date column as real Date values (not text). With a text header over a Date column,
+  // the chart recognises row 1 as the header, so the activity columns become named series.
+  var values = pivot.rows.map(function (r) {
+    return [new Date(r[0] + "T00:00:00")].concat(r.slice(1));
+  });
+  sheet.getRange(2, 1, values.length, cols).setValues(values);
 
   var chart = sheet.newChart()
     .asColumnChart()
     .setStacked()
-    .addRange(sheet.getRange(1, 1, pivot.rows.length + 1, cols))
+    .addRange(sheet.getRange(1, 1, values.length + 1, cols))
     .setPosition(2, cols + 2, 0, 0)
-    .setOption("title", "Daily usage (minutes) — " + pivot.name)
+    .setOption("title", "Activity analysis — " + pivot.name)
     .setOption("legend", { position: "right" })
     .setOption("useFirstColumnAsDomain", true)  // dates = x-axis; header row = series names
     .build();
