@@ -122,6 +122,18 @@ it directly (the dashboard is built on these later).
 - **`commands`** — `command_id`, `user_id`, `command_type`, `params`, `status`
   (`pending` → `done`/`failed`), `created`, `executed`, `result`. The agent reads `pending`,
   executes, and writes back status.
+- **`activity_daily`** — compact archive: one row per `(date, user_id, activity_id)` with summed
+  `seconds`. Written by maintenance (below); read by the dashboard. The agent never touches it.
+
+### Log growth & maintenance
+
+`activity_log` is append-only and every agent sync scans it (overlap check + state recovery), so
+unbounded growth would eventually be slow and quota-hungry. But the agent only ever needs **recent**
+raw rows — it recovers just "today" and never re-logs an old period. So a maintenance pass
+(`raw_retention_days`, default 3) **rolls rows older than the window into `activity_daily`** (summed
+per day/user/activity) and **deletes them from the raw log**, keeping `activity_log` small and the
+scans fast. The dashboard reads `activity_daily` + the recent raw rows, so full history is preserved.
+Run it from the **Ludex** menu (*Run maintenance now*) or enable a nightly trigger.
 
 ## 7. Commands (backend → endpoint)
 

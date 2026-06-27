@@ -32,8 +32,19 @@ function buildDashboard_() {
   var tz = ss.getSpreadsheetTimeZone();
   var labels = _userLabels_();
 
-  // aggregate seconds by (local date, user, activity)
+  // aggregate seconds by (local date, user, activity).
   var agg = {};
+
+  // (a) seed from the rolled-up archive (older days, already aggregated)
+  table_(ARCHIVE).rows().forEach(function (a) {
+    if (!a.date || !a.activity_id) return;
+    var who = labels[a.user_id] || a.user_id;
+    var key = a.date + "|" + who + "|" + a.activity_id;
+    if (!agg[key]) agg[key] = { date: a.date, user: who, activity: a.activity_id, seconds: 0 };
+    agg[key].seconds += Number(a.seconds) || 0;
+  });
+
+  // (b) add the recent raw rows still in activity_log
   table_(SHEETS.activity_log).rows().forEach(function (r) {
     if (!r.activity_id) return;  // skip empty/idle periods
     var day;

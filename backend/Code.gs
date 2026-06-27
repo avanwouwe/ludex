@@ -34,7 +34,8 @@ var SHEETS = {
 var DEFAULT_CONFIG = {
   sample_interval_s: "20",
   sync_interval_s: "300",
-  warn_before_minutes: "10"
+  warn_before_minutes: "10",
+  raw_retention_days: "3"   // raw activity_log rows older than this are rolled into activity_daily
 };
 
 // ===== HTTP entry points =====

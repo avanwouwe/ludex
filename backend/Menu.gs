@@ -15,6 +15,9 @@ function onOpen() {
     .addSeparator()
     .addItem("Refresh dashboard", "ludexRefreshDashboard")
     .addItem("Send a command…", "ludexSendCommand")
+    .addSeparator()
+    .addItem("Run maintenance now", "ludexRunMaintenance")
+    .addItem("Enable nightly maintenance", "ludexEnableNightlyMaintenance")
     .addToUi();
 
   if (!ludexIsConfigured_()) {
