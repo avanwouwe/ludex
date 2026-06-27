@@ -61,6 +61,25 @@
   <div class="step-block">
     <div class="step-title"><span class="step-n">3</span> Deploy as a web app and get your Dashboard URL</div>
     <p>Click <strong>Extensions → Apps Script</strong> to open the script editor, then:</p>
+    <div class="callout warn" style="margin-bottom: 16px;">
+      <span class="callout-icon">⚠️</span>
+      <span>
+        When authorizing the script, Google will warn that the app is unverified.
+        This is expected — the script runs entirely in <em>your</em> Google account and has no access to anything outside it.
+        Click <strong>Advanced → Go to Ludex (unsafe)</strong> to proceed. You will then see exactly four permissions being requested:
+        <ul style="margin-top: 8px; margin-bottom: 8px;">
+          <li style="margin-bottom:6px"><em>"View and manage spreadsheets that this application has been installed in."</em><br>
+            <span style="color:#666">To read and write your dashboard — activity logs, limits, commands. Scoped to this sheet only, not your other files.</span></li>
+          <li style="margin-bottom:6px"><em>"Display and run third-party web content in prompts and sidebars inside Google applications."</em><br>
+            <span style="color:#666">To show the setup forms and dialogs inside the sheet (credentials, limits, send command, …).</span></li>
+          <li style="margin-bottom:6px"><em>"Send email as you."</em><br>
+            <span style="color:#666">To email you when a child reaches a daily limit. No emails are sent without a limit being crossed.</span></li>
+          <li style="margin-bottom:6px"><em>"Allow this application to run when you are not present."</em><br>
+            <span style="color:#666">To run a nightly cleanup of old log entries and an hourly check for devices that have gone offline — both happen automatically in the background.</span></li>
+        </ul>
+        No other permissions are requested.
+      </span>
+    </div>
     <ol>
       <li>Click <strong>Deploy → New deployment</strong></li>
       <li>Select type: <strong>Web app</strong></li>

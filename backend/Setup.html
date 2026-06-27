@@ -5,7 +5,8 @@
     <style>
       body { font-family: Arial, sans-serif; font-size: 13px; margin: 16px; }
       label { display: block; font-weight: bold; margin: 12px 0 4px; }
-      input { width: 100%; box-sizing: border-box; padding: 7px; }
+      input[type=text], input[type=password] { width: 100%; box-sizing: border-box; padding: 7px; }
+      .show-row { margin-top: 4px; display: flex; align-items: center; gap: 6px; color: #666; }
       .muted { color: #666; }
       button { margin-top: 16px; padding: 8px 16px; }
       #status { margin-left: 10px; }
@@ -16,11 +17,15 @@
       Stored privately in this Sheet. Click a field to select it, then type to replace.
     </div>
 
-    <label>Shared key <span class="muted">— every computer's agent uses this</span></label>
+    <label>Shared key <span class="muted">— used to install agents</span></label>
     <input type="text" id="token" autocomplete="off" onfocus="this.select()">
 
-    <label>Admin password <span class="muted">— to add activities / clean up data</span></label>
-    <input type="password" id="admin" autocomplete="off" onfocus="this.select()">
+    <label>Admin password <span class="muted">— to define new activities</span></label>
+    <input type="text" id="admin" autocomplete="off" onfocus="this.select()">
+    <div class="show-row">
+      <input type="checkbox" id="showAdmin" checked onchange="document.getElementById('admin').type = this.checked ? 'text' : 'password'">
+      <label for="showAdmin" style="font-weight:normal;margin:0;">Show password</label>
+    </div>
 
     <button id="save" onclick="save()">Save</button>
     <span id="status" class="muted"></span>
@@ -28,10 +33,23 @@
     <script>
       function status(m) { document.getElementById('status').textContent = m; }
 
-      // Prefill with the current values.
+      function generate(fieldId) {
+        var chars = 'abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+        var result = '';
+        for (var i = 0; i < 20; i++) {
+          result += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        var el = document.getElementById(fieldId);
+        el.value = result;
+        el.type = 'text'; // show it so the user can copy if needed
+      }
+
+      // Prefill with the current values; auto-generate for first-time setup.
       google.script.run.withSuccessHandler(function (c) {
-        document.getElementById('token').value = c.token || '';
-        document.getElementById('admin').value = c.admin || '';
+        if (c.token) { document.getElementById('token').value = c.token; }
+        else { generate('token'); }
+        if (c.admin) { document.getElementById('admin').value = c.admin; }
+        else { generate('admin'); }
       }).getCredentials();
 
       function save() {

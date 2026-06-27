@@ -15,9 +15,8 @@ Everything Ludex records lives in **your own Google Sheet**. No one else can see
    with it.)
 2. **Reload the page.** A new **Ludex** menu appears at the top, next to *Help*.
 3. Click **Ludex ▸ ① Set credentials** and enter two things you make up:
-   - a **shared key** — like a long password; every computer you monitor will use it. Make it long
-     and hard to guess.
-   - an **admin password** — used when you add new activities or clean up data.
+   - a **shared key** — like a password; every computer you monitor will use it to report to the dashboard.
+   - an **admin password** — used should you need to add new activities. (⚠️ dp not re-use "your regular password")
    
    Write both down somewhere safe.
 4. Click **Ludex ▸ ③ How to deploy the backend** and follow the five steps it shows. At the end,
