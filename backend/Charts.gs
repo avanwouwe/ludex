@@ -76,6 +76,7 @@ function ludexBuildUsageChart(user_id) {
     .setPosition(2, cols + 2, 0, 0)
     .setOption("title", "Daily usage (minutes) — " + pivot.name)
     .setOption("legend", { position: "right" })
+    .setOption("useFirstColumnAsDomain", true)  // dates = x-axis; header row = series names
     .build();
   sheet.insertChart(chart);
   sheet.activate();
