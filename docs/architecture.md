@@ -133,7 +133,9 @@ it directly (the dashboard is built on these later).
 UI-only tabs (not touched by the agent): **`dashboard`** (generated minutes per day/user/activity,
 with rows highlighted red when over an activity's `daily_max_minutes` / amber when within
 `warn_before_minutes`), and **`people`** (optional `user_id` → friendly `name` + alert `email`(s);
-auto-seeded with each user's system username, edited via **Ludex ▸ Edit names**).
+auto-seeded with each user's system username, edited via **Ludex ▸ Edit names**), and **`chart`**
+(a per-user stacked column chart of daily minutes per activity, built on demand via
+**Ludex ▸ Usage chart**).
 
 ### Alerts (email)
 

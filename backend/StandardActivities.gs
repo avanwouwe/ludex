@@ -53,8 +53,9 @@ var STANDARD_ACTIVITIES = [
     definition: { match_any: [{ name_contains: "zoom" }], min_cpu_percent: 1, limits: { daily_max_minutes: 240, warn_before_minutes: 15 } } }
 ];
 
-function ludexInstallStandardActivities() {
-  var ui = SpreadsheetApp.getUi();
+// Insert any standard activities not already present. Returns {added, skipped}. Silent (no UI),
+// so it can run during install.
+function installStandardActivities_() {
   var t = table_(SHEETS.activity_types);
   var have = {};
   t.rows().forEach(function (r) { if (r.activity_id) have[r.activity_id] = true; });
@@ -65,10 +66,14 @@ function ludexInstallStandardActivities() {
     t.append({ activity_id: a.activity_id, name: a.name || "", definition: JSON.stringify(a.definition), enabled: true });
     added++;
   });
+  return { added: added, skipped: skipped };
+}
 
-  ui.alert("Standard activities",
-    "Added " + added + ", skipped " + skipped + " already present.\n\n"
+function ludexInstallStandardActivities() {
+  var r = installStandardActivities_();
+  SpreadsheetApp.getUi().alert("Standard activities",
+    "Added " + r.added + ", skipped " + r.skipped + " already present.\n\n"
     + "These are starting points — verify the process names on your computers with "
     + "`ludex detect-app`, and adjust the limits in the activity_types tab.",
-    ui.ButtonSet.OK);
+    SpreadsheetApp.getUi().ButtonSet.OK);
 }

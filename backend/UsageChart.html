@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <style>
+      body { font-family: Arial, sans-serif; font-size: 13px; margin: 16px; }
+      label { display: block; font-weight: bold; margin: 8px 0 4px; }
+      select { width: 100%; box-sizing: border-box; padding: 7px; }
+      button { margin-top: 16px; padding: 8px 16px; }
+      .muted { color: #666; }
+      #status { margin-left: 10px; }
+    </style>
+  </head>
+  <body>
+    <label>Computer / person</label>
+    <select id="user"></select>
+    <button id="go" onclick="show()">Show chart</button>
+    <span id="status" class="muted"></span>
+
+    <script>
+      function st(m) { document.getElementById('status').textContent = m; }
+      google.script.run.withSuccessHandler(function (users) {
+        var s = document.getElementById('user');
+        (users || []).forEach(function (u) { var o = document.createElement('option'); o.value = u.id; o.text = u.label; s.add(o); });
+      }).withFailureHandler(function (e) { st(e.message); }).getChartUsers();
+
+      function show() {
+        var user = document.getElementById('user').value;
+        document.getElementById('go').disabled = true;
+        st('Building…');
+        google.script.run
+          .withSuccessHandler(function () { google.script.host.close(); })
+          .withFailureHandler(function (e) { document.getElementById('go').disabled = false; st(e.message); })
+          .ludexBuildUsageChart(user);
+      }
+    </script>
+  </body>
+</html>

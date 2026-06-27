@@ -24,16 +24,17 @@ function buildMenu_() {
         .addItem("② How to deploy the backend…", "ludexDeployHelp");
   } else {
     menu.addItem("Refresh dashboard", "ludexRefreshDashboard")
+        .addItem("Usage chart…", "ludexUsageChart")
         .addItem("Send a command…", "ludexSendCommand")
         .addItem("Edit names", "ludexEditNames")
         .addItem("Edit activity limits…", "ludexLimits")
-        .addItem("Install standard activities", "ludexInstallStandardActivities")
         .addSeparator()
         .addItem("Settings…", "ludexSettings")
         .addItem("Set credentials…", "ludexSetCredentials")
         .addSubMenu(ui.createMenu("Advanced")
           .addItem("How to deploy the backend…", "ludexDeployHelp")
           .addItem("Create / repair sheets", "ludexSetup")
+          .addItem("Install standard activities", "ludexInstallStandardActivities")
           .addItem("Run maintenance now", "ludexRunMaintenance"));
   }
   menu.addToUi();
@@ -68,6 +69,7 @@ function ludexSaveCredentials(token, admin) {
 
   ludexSetup();                  // create/repair the data tabs, dashboard, people, formatting
   if (firstTime) {
+    installStandardActivities_();// seed common games so there's something to track immediately
     enableNightlyMaintenance_(); // schedule the nightly rollup
     enableHeartbeat_();          // schedule the hourly offline-device check
   }
