@@ -126,6 +126,11 @@ it directly (the dashboard is built on these later).
 - **`activity_daily`** — compact archive: one row per `(date, user_id, activity_id)` with summed
   `seconds`. Written by maintenance (below); read by the dashboard. The agent never touches it.
 
+UI-only tabs (not touched by the agent): **`dashboard`** (generated minutes per day/user/activity,
+with rows highlighted red when over an activity's `daily_max_minutes` / amber when within
+`warn_before_minutes`), and **`people`** (optional `user_id` → friendly name; auto-seeded with each
+user's system username, edit the `name` column via **Ludex ▸ Edit names**).
+
 ### Log growth & maintenance
 
 `activity_log` is append-only and every agent sync scans it (overlap check + state recovery), so

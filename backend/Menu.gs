@@ -17,10 +17,12 @@ function onOpen() {
     .addItem("Install standard activities", "ludexInstallStandardActivities")
     .addSeparator()
     .addItem("Refresh dashboard", "ludexRefreshDashboard")
+    .addItem("Edit names", "ludexEditNames")
     .addItem("Send a command…", "ludexSendCommand")
     .addSeparator()
     .addItem("Run maintenance now", "ludexRunMaintenance")
     .addItem("Enable nightly maintenance", "ludexEnableNightlyMaintenance")
+    .addItem("Toggle development mode", "ludexToggleDevMode")
     .addToUi();
 
   if (!ludexIsConfigured_()) {
@@ -56,6 +58,7 @@ function ludexSaveCredentials(token, admin) {
 function ludexSetup() {
   setup();                 // from Code.gs: creates data tabs + seeds config defaults
   buildDashboardSheet_();  // ensure the dashboard tab exists
+  syncPeople_();           // ensure the people (friendly names) tab exists
   SpreadsheetApp.getActiveSpreadsheet().toast("Sheets ready.", "Ludex", 4);
 }
 

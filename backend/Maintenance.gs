@@ -75,6 +75,23 @@ function ludexNightlyMaintenance() {
   buildDashboard_();
 }
 
+// A4: toggle the DEVELOPMENT_MODE script property (gates destructive Delete* methods).
+function ludexToggleDevMode() {
+  var ui = SpreadsheetApp.getUi();
+  var p = PropertiesService.getScriptProperties();
+  if (truthy_(p.getProperty("DEVELOPMENT_MODE"))) {
+    p.setProperty("DEVELOPMENT_MODE", "false");
+    ui.alert("Development mode is now OFF — destructive cleanup methods are disabled.");
+  } else {
+    var r = ui.alert("Enable development mode?",
+      "This enables destructive cleanup methods (Delete*). Use only on a TEST backend. Continue?",
+      ui.ButtonSet.YES_NO);
+    if (r !== ui.Button.YES) return;
+    p.setProperty("DEVELOPMENT_MODE", "true");
+    ui.alert("Development mode is now ON. Turn it OFF before using this backend for real.");
+  }
+}
+
 function ludexEnableNightlyMaintenance() {
   var ui = SpreadsheetApp.getUi();
   ScriptApp.getProjectTriggers().forEach(function (t) {
