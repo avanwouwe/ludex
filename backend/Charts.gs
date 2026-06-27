@@ -4,7 +4,7 @@
  * as the dashboard), filtered to one user.
  */
 
-var CHART_SHEET = "chart";
+var CHART_SHEET = "analysis";
 
 function ludexUsageChart() {
   if (!table_(SHEETS.users).rows().some(function (u) { return u.user_id; })) {
