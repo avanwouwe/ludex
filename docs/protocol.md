@@ -98,6 +98,15 @@ stored for that `user_id`. Overlap detection makes retries safe.
 ```
 → `data: { "created": true|false }`. Rejected if `admin_password` is wrong.
 
+### Admin cleanup — **admin** methods (remove rows; all require `admin_password`)
+For pruning history or deleting test data. Each returns `data: { "deleted": <count> }`.
+
+- `DeleteActivityLog` — `{ admin_password, user_id, before? }` deletes that user's log rows; if
+  `before` (ISO time) is given, only rows whose `period_end` ≤ `before`.
+- `DeleteUser` — `{ admin_password, user_id }`
+- `DeleteActivityType` — `{ admin_password, activity_id }`
+- `DeleteCommand` — `{ admin_password, command_id }`
+
 ## Notes for the implementation
 
 - Keep the reference POC's `json_()` / `doPost` shape; extend it into a small **method dispatcher**

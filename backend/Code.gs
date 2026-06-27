@@ -77,13 +77,18 @@ function doPost(e) {
 
 // ===== Method dispatch =====
 var DISPATCH = {
-  UpdateUser:      UpdateUser_,
-  GetConfig:       GetConfig_,
-  PutActivityLog:  PutActivityLog_,
-  GetActivityLog:  GetActivityLog_,
-  GetCommands:     GetCommands_,
-  UpdateCommand:   UpdateCommand_,
-  PutActivityType: PutActivityType_
+  UpdateUser:        UpdateUser_,
+  GetConfig:         GetConfig_,
+  PutActivityLog:    PutActivityLog_,
+  GetActivityLog:    GetActivityLog_,
+  GetCommands:       GetCommands_,
+  UpdateCommand:     UpdateCommand_,
+  PutActivityType:   PutActivityType_,
+  // admin-only cleanup (all require admin_password)
+  DeleteActivityLog: DeleteActivityLog_,
+  DeleteUser:        DeleteUser_,
+  DeleteActivityType: DeleteActivityType_,
+  DeleteCommand:     DeleteCommand_
 };
 
 // ===== Handlers =====
@@ -197,7 +202,7 @@ function UpdateCommand_(p) {
 }
 
 function PutActivityType_(p) {
-  if (p.admin_password !== ADMIN_PASSWORD_()) throw new Error("unauthorized: bad admin_password");
+  requireAdmin_(p);
   requireFields_(p, ["activity_id", "definition"]);
   var t = table_(SHEETS.activity_types);
   var row = t.findRow("activity_id", p.activity_id);
@@ -208,6 +213,43 @@ function PutActivityType_(p) {
   }
   t.append({ activity_id: p.activity_id, definition: p.definition, enabled: enabled });
   return { created: true };
+}
+
+// ===== Admin cleanup handlers =====
+// Useful for removing test rows or pruning history. All require the admin password.
+function DeleteActivityLog_(p) {
+  requireAdmin_(p);
+  requireFields_(p, ["user_id"]);
+  var before = p.before ? new Date(p.before).getTime() : null;
+  var deleted = table_(SHEETS.activity_log).deleteWhere(function (r) {
+    if (r.user_id !== p.user_id) return false;
+    if (before !== null && new Date(r.period_end).getTime() > before) return false;
+    return true;
+  });
+  return { deleted: deleted };
+}
+
+function DeleteUser_(p) {
+  requireAdmin_(p);
+  requireFields_(p, ["user_id"]);
+  var deleted = table_(SHEETS.users).deleteWhere(function (r) { return r.user_id === p.user_id; });
+  return { deleted: deleted };
+}
+
+function DeleteActivityType_(p) {
+  requireAdmin_(p);
+  requireFields_(p, ["activity_id"]);
+  var deleted = table_(SHEETS.activity_types).deleteWhere(function (r) { return r.activity_id === p.activity_id; });
+  return { deleted: deleted };
+}
+
+function DeleteCommand_(p) {
+  requireAdmin_(p);
+  requireFields_(p, ["command_id"]);
+  var deleted = table_(SHEETS.commands).deleteWhere(function (r) {
+    return String(r.command_id) === String(p.command_id);
+  });
+  return { deleted: deleted };
 }
 
 // ===== Sheet access (header-indexed table helper) =====
@@ -251,11 +293,21 @@ function table_(spec) {
         if (colOf[h] === undefined) return;
         sheet.getRange(rowObj.__row, colOf[h] + 1).setValue(changes[h]);
       });
+    },
+    deleteWhere: function (predicate) {
+      var rownums = readAll().filter(predicate).map(function (r) { return r.__row; });
+      rownums.sort(function (a, b) { return b - a; }); // delete bottom-up to keep indices valid
+      rownums.forEach(function (n) { sheet.deleteRow(n); });
+      return rownums.length;
     }
   };
 }
 
 // ===== Utilities =====
+function requireAdmin_(p) {
+  if (p.admin_password !== ADMIN_PASSWORD_()) throw new Error("unauthorized: bad admin_password");
+}
+
 function requireFields_(p, fields) {
   fields.forEach(function (f) {
     if (p[f] === undefined || p[f] === null || p[f] === "") throw new Error("missing field: " + f);
