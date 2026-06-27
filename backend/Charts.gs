@@ -51,13 +51,15 @@ function _usagePivot_(user_id, tz) {
   return { name: (_userLabels_()[user_id] || user_id), header: header, rows: rows };
 }
 
-// called from UsageChart.html
+// called from UsageChart.html. Built from an explicit DataTable (named columns) and inserted as an
+// image, so the activity legend is always labelled — no reliance on the chart's row-1-as-header
+// auto-detection (which doesn't trigger for programmatically inserted charts).
 function ludexBuildUsageChart(user_id) {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var pivot = _usagePivot_(user_id, ss.getSpreadsheetTimeZone());
   var sheet = ss.getSheetByName(CHART_SHEET) || ss.insertSheet(CHART_SHEET);
   sheet.clear();
-  sheet.getCharts().forEach(function (c) { sheet.removeChart(c); });
+  sheet.getImages().forEach(function (im) { im.remove(); });
 
   if (!pivot.rows.length) {
     sheet.getRange(1, 1).setValue("No usage recorded for " + pivot.name + " yet.");
@@ -65,25 +67,28 @@ function ludexBuildUsageChart(user_id) {
     return true;
   }
 
+  // Reference table (with a real-Date first column so it reads as dates).
   var cols = pivot.header.length;
   sheet.getRange(1, 1, 1, cols).setValues([pivot.header]).setFontWeight("bold");
-  // Write the date column as real Date values (not text). With a text header over a Date column,
-  // the chart recognises row 1 as the header, so the activity columns become named series.
-  var values = pivot.rows.map(function (r) {
+  sheet.getRange(2, 1, pivot.rows.length, cols).setValues(pivot.rows.map(function (r) {
     return [new Date(r[0] + "T00:00:00")].concat(r.slice(1));
-  });
-  sheet.getRange(2, 1, values.length, cols).setValues(values);
+  }));
 
-  var chart = sheet.newChart()
-    .asColumnChart()
+  // Build a DataTable with explicit column labels -> guaranteed-named series.
+  var dt = Charts.newDataTable().addColumn(Charts.ColumnType.STRING, pivot.header[0]);
+  for (var i = 1; i < pivot.header.length; i++) {
+    dt.addColumn(Charts.ColumnType.NUMBER, pivot.header[i]);
+  }
+  pivot.rows.forEach(function (r) { dt.addRow(r); });
+
+  var chart = Charts.newColumnChart()
+    .setDataTable(dt.build())
     .setStacked()
-    .addRange(sheet.getRange(1, 1, values.length + 1, cols))
-    .setPosition(2, cols + 2, 0, 0)
-    .setOption("title", "Activity analysis — " + pivot.name)
-    .setOption("legend", { position: "right" })
-    .setOption("useFirstColumnAsDomain", true)  // dates = x-axis; header row = series names
+    .setTitle("Activity analysis — " + pivot.name)
+    .setDimensions(820, 420)
+    .setLegendPosition(Charts.Position.RIGHT)
     .build();
-  sheet.insertChart(chart);
+  sheet.insertImage(chart.getAs("image/png"), cols + 2, 1);
   sheet.activate();
   return true;
 }
