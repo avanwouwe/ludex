@@ -10,6 +10,9 @@ and the parent's dashboard.
 3. Set secrets via **Project Settings → Script Properties** (recommended over editing the literals):
    - `SHARED_TOKEN` — the shared key every agent uses (long random string).
    - `ADMIN_PASSWORD` — required for `PutActivityType` (adding activities via `--detect-app`).
+   - `DEVELOPMENT_MODE` *(optional)* — set to `true` only on a dev/test backend to enable the
+     destructive `Delete*` cleanup methods. **Leave it unset in production**; the deletes will
+     refuse to run.
 4. In the editor, select the `setup` function and **Run** it once. This creates the tabs
    (`config`, `users`, `activity_log`, `activity_types`, `commands`) with headers and seeds default
    config values. Approve the permission prompt.

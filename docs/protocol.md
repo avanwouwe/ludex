@@ -98,8 +98,11 @@ stored for that `user_id`. Overlap detection makes retries safe.
 ```
 → `data: { "created": true|false }`. Rejected if `admin_password` is wrong.
 
-### Admin cleanup — **admin** methods (remove rows; all require `admin_password`)
-For pruning history or deleting test data. Each returns `data: { "deleted": <count> }`.
+### Admin cleanup — **development-only** methods (remove rows)
+Destructive helpers for pruning history or deleting test data. Each requires **both** the
+`admin_password` **and** a truthy `DEVELOPMENT_MODE` script property on the backend — with
+`DEVELOPMENT_MODE` unset (production), they refuse to run (`forbidden: development-only method`).
+Each returns `data: { "deleted": <count> }`.
 
 - `DeleteActivityLog` — `{ admin_password, user_id, before? }` deletes that user's log rows; if
   `before` (ISO time) is given, only rows whose `period_end` ≤ `before`.

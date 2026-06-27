@@ -20,6 +20,8 @@ function prop_(key, fallback) {
 }
 function SHARED_TOKEN_()   { return prop_("SHARED_TOKEN", "change-me-to-a-long-random-string"); }
 function ADMIN_PASSWORD_() { return prop_("ADMIN_PASSWORD", "change-me-admin"); }
+// Destructive cleanup methods only work when this property is truthy. Leave it UNSET in production.
+function DEVELOPMENT_MODE_() { return truthy_(prop_("DEVELOPMENT_MODE", "")); }
 
 var SHEETS = {
   config:         { name: "config",         headers: ["key", "value"] },
@@ -215,9 +217,11 @@ function PutActivityType_(p) {
   return { created: true };
 }
 
-// ===== Admin cleanup handlers =====
-// Useful for removing test rows or pruning history. All require the admin password.
+// ===== Admin cleanup handlers (development only) =====
+// Destructive: gated behind the DEVELOPMENT_MODE property AND the admin password.
+// On a production backend (DEVELOPMENT_MODE unset) these refuse to run at all.
 function DeleteActivityLog_(p) {
+  requireDevMode_();
   requireAdmin_(p);
   requireFields_(p, ["user_id"]);
   var before = p.before ? new Date(p.before).getTime() : null;
@@ -230,6 +234,7 @@ function DeleteActivityLog_(p) {
 }
 
 function DeleteUser_(p) {
+  requireDevMode_();
   requireAdmin_(p);
   requireFields_(p, ["user_id"]);
   var deleted = table_(SHEETS.users).deleteWhere(function (r) { return r.user_id === p.user_id; });
@@ -237,6 +242,7 @@ function DeleteUser_(p) {
 }
 
 function DeleteActivityType_(p) {
+  requireDevMode_();
   requireAdmin_(p);
   requireFields_(p, ["activity_id"]);
   var deleted = table_(SHEETS.activity_types).deleteWhere(function (r) { return r.activity_id === p.activity_id; });
@@ -244,6 +250,7 @@ function DeleteActivityType_(p) {
 }
 
 function DeleteCommand_(p) {
+  requireDevMode_();
   requireAdmin_(p);
   requireFields_(p, ["command_id"]);
   var deleted = table_(SHEETS.commands).deleteWhere(function (r) {
@@ -306,6 +313,10 @@ function table_(spec) {
 // ===== Utilities =====
 function requireAdmin_(p) {
   if (p.admin_password !== ADMIN_PASSWORD_()) throw new Error("unauthorized: bad admin_password");
+}
+
+function requireDevMode_() {
+  if (!DEVELOPMENT_MODE_()) throw new Error("forbidden: development-only method (set DEVELOPMENT_MODE)");
 }
 
 function requireFields_(p, fields) {
