@@ -27,7 +27,7 @@ var SHEETS = {
   config:         { name: "config",         headers: ["key", "value"] },
   users:          { name: "users",          headers: ["user_id", "host_id", "hostname", "system_username", "public_ip", "os", "version", "first_seen", "last_seen"] },
   activity_log:   { name: "activity_log",   headers: ["server_time", "user_id", "period_start", "period_end", "period_seconds", "activity_id", "activity_seconds"] },
-  activity_types: { name: "activity_types", headers: ["activity_id", "definition", "enabled", "name"] },
+  activity_types: { name: "activity_types", headers: ["activity_id", "name", "definition", "enabled"] },
   commands:       { name: "commands",       headers: ["command_id", "user_id", "command_type", "params", "status", "created", "executed", "result"] }
 };
 
@@ -320,6 +320,35 @@ function table_(spec) {
   };
 }
 
+// Re-lay-out a sheet to match `newHeaders`, preserving data by COLUMN NAME. Safe across column
+// reordering/additions/removals; idempotent (no-op once the header already matches). Run from setup.
+function migrateSheet_(sheet, newHeaders) {
+  var lastRow = sheet.getLastRow();
+  var lastCol = Math.max(sheet.getLastColumn(), 1);
+  var oldHeaders = sheet.getRange(1, 1, 1, lastCol).getValues()[0].map(function (h) { return String(h); });
+
+  var same = (oldHeaders.length === newHeaders.length) &&
+             newHeaders.every(function (h, i) { return oldHeaders[i] === h; });
+  if (same) return;
+
+  var records = [];
+  if (lastRow >= 2) {
+    sheet.getRange(2, 1, lastRow - 1, lastCol).getValues().forEach(function (row) {
+      var rec = {};
+      oldHeaders.forEach(function (h, i) { rec[h] = row[i]; });
+      records.push(rec);
+    });
+  }
+  sheet.clear();
+  sheet.getRange(1, 1, 1, newHeaders.length).setValues([newHeaders]);
+  if (records.length) {
+    var out = records.map(function (rec) {
+      return newHeaders.map(function (h) { return rec[h] !== undefined ? rec[h] : ""; });
+    });
+    sheet.getRange(2, 1, out.length, newHeaders.length).setValues(out);
+  }
+}
+
 // ===== Utilities =====
 function requireAdmin_(p) {
   if (p.admin_password !== ADMIN_PASSWORD_()) throw new Error("unauthorized: bad admin_password");
@@ -351,8 +380,7 @@ function setup() {
   Object.keys(SHEETS).forEach(function (k) {
     var spec = SHEETS[k];
     table_(spec);  // ensure the sheet exists
-    // repair/extend the header row to match the spec (adds new columns like `os` to old sheets)
-    ss.getSheetByName(spec.name).getRange(1, 1, 1, spec.headers.length).setValues([spec.headers]);
+    migrateSheet_(ss.getSheetByName(spec.name), spec.headers);
   });
   var ct = table_(SHEETS.config);
   var existing = {};
