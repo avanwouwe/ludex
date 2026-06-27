@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Guide — Ludex</title>
+  <meta name="description" content="How to define activities, manage limits, send commands, and uninstall Ludex.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-logo">lu<span>dex</span></a>
+  <ul>
+    <li><a href="install.html">Install</a></li>
+    <li><a href="guide.html" class="active">Guide</a></li>
+    <li><a href="https://github.com/arno-vanwouwe/ludex" target="_blank">GitHub</a></li>
+  </ul>
+</nav>
+
+<div class="page-hero">
+  <h1>Guide</h1>
+  <p>Defining activities, managing limits, and less common tasks.</p>
+</div>
+
+<div class="content">
+<div class="guide-layout">
+
+  <!-- Sidebar TOC -->
+  <nav class="guide-toc">
+    <h4>On this page</h4>
+    <ul>
+      <li><a href="#activities">Defining activities</a></li>
+      <li><a href="#limits">Time limits &amp; warnings</a></li>
+      <li><a href="#commands">Sending commands</a></li>
+      <li><a href="#names">Friendly names</a></li>
+      <li><a href="#updating">Updating the script</a></li>
+      <li><a href="#uninstall">Uninstalling</a></li>
+    </ul>
+  </nav>
+
+  <div class="guide-body">
+
+    <!-- Activities -->
+    <h2 id="activities">Defining activities</h2>
+    <p>
+      An <em>activity</em> is a rule that matches one or more running apps.
+      When a matching app is in focus, Ludex counts the time against that activity.
+    </p>
+    <p>
+      Ludex ships with a library of common games and apps. To see them, click
+      <strong>Ludex → Advanced → Install standard activities</strong> in your dashboard.
+    </p>
+
+    <h3>Finding an app's process name</h3>
+    <p>
+      To define a custom activity, you need the app's process name as the operating
+      system sees it. Run this on the child's computer while the app is open:
+    </p>
+    <pre><code>ludex --detect-app</code></pre>
+    <p>
+      This prints a list of running processes. Find your app and note the name shown
+      — that's what goes in the definition.
+    </p>
+
+    <h3>Activity definition format</h3>
+    <p>Each activity is a JSON definition stored in the <em>activity_types</em> tab of your sheet:</p>
+    <pre><code>{
+  "match": {
+    "process_name": ["minecraft", "java"]
+  },
+  "limits": {
+    "daily_max_minutes": 60,
+    "warn_before_minutes": 10
+  }
+}</code></pre>
+    <ul>
+      <li><code>process_name</code> — list of process names that count as this activity (case-insensitive)</li>
+      <li><code>daily_max_minutes</code> — daily time limit; 0 means no limit</li>
+      <li><code>warn_before_minutes</code> — how many minutes before the limit to warn the child</li>
+    </ul>
+
+    <h3>Adding an activity via the dashboard</h3>
+    <ol>
+      <li>Open the <em>activity_types</em> tab in your Google Sheet</li>
+      <li>Add a new row: fill in <code>activity_id</code> (a short unique slug, e.g. <code>minecraft</code>), <code>name</code> (the friendly display name), and the JSON definition above</li>
+      <li>Set <code>enabled</code> to <code>TRUE</code></li>
+      <li>The agent picks up the new activity on its next sync (within a few minutes)</li>
+    </ol>
+
+    <div class="callout tip">
+      <span class="callout-icon">✅</span>
+      <span>Use the <strong>name</strong> column for what your child sees in warnings, e.g. "Minecraft" rather than "minecraft".</span>
+    </div>
+
+    <!-- Limits -->
+    <h2 id="limits">Time limits &amp; warnings</h2>
+    <p>
+      Limits are set per activity inside the JSON definition (see above).
+      You can also edit them through the dashboard:
+    </p>
+    <ol>
+      <li>Click <strong>Ludex → Edit activity limits</strong></li>
+      <li>Adjust the daily max and warning threshold for each activity</li>
+      <li>Save — the agent picks up changes on its next sync</li>
+    </ol>
+    <p>
+      When a child reaches the warning threshold, a notification appears on their
+      screen. When they hit the daily limit, another notification fires.
+      The agent does <strong>not</strong> enforce limits automatically —
+      enforcement is a manual decision you make as a parent.
+    </p>
+    <div class="callout info">
+      <span class="callout-icon">ℹ️</span>
+      <span>The dashboard highlights rows in <span style="background:#f4cccc;padding:1px 5px;border-radius:3px">red</span> when a limit is exceeded and <span style="background:#fff2cc;padding:1px 5px;border-radius:3px">amber</span> when a child is within the warning window.</span>
+    </div>
+
+    <!-- Commands -->
+    <h2 id="commands">Sending commands</h2>
+    <p>
+      Commands let you act on a child's computer from the dashboard without being in the room.
+      Click <strong>Ludex → Send a command</strong> and choose:
+    </p>
+    <ul>
+      <li><strong>Stop activity</strong> — kills a specific running app by name</li>
+      <li><strong>Shutdown</strong> — shuts down the computer (requires the OS to allow it for the user)</li>
+    </ul>
+    <p>
+      Commands are queued and picked up on the agent's next sync cycle (within a few minutes).
+      The dashboard shows whether the command was executed or failed.
+    </p>
+    <div class="callout warn">
+      <span class="callout-icon">⚠️</span>
+      <span>The agent only kills processes owned by the logged-in user. It cannot force-quit system processes or apps running as another user.</span>
+    </div>
+
+    <!-- Names -->
+    <h2 id="names">Friendly names</h2>
+    <p>
+      By default, each child appears in the dashboard as their system username and hostname.
+      To give them a friendly name:
+    </p>
+    <ol>
+      <li>Click <strong>Ludex → Edit names</strong> — the <em>people</em> tab opens</li>
+      <li>Edit the <code>name</code> column next to the user you want to rename</li>
+      <li>Optionally add an <code>email</code> address to receive limit-exceeded alerts for that user</li>
+    </ol>
+
+    <!-- Updating -->
+    <h2 id="updating">Updating the dashboard script</h2>
+    <p>When a new version of Ludex is released:</p>
+    <ol>
+      <li>Replace the script files in Apps Script with the new versions</li>
+      <li>In the script editor, click <strong>Deploy → Manage deployments</strong></li>
+      <li>Click the edit (pencil) icon → set version to <strong>New version</strong> → Deploy</li>
+    </ol>
+    <p class="note">The URL stays the same — you don't need to update the agent.</p>
+    <p>To update the agent on a child's computer, download the new binary from the releases page and run it. It will replace the existing installation.</p>
+
+    <!-- Uninstall -->
+    <h2 id="uninstall">Uninstalling</h2>
+
+    <h3>Remove the agent from a computer</h3>
+    <p>On the child's computer, open a terminal and run:</p>
+    <pre><code>ludex uninstall</code></pre>
+    <p>This stops the background service and removes it. The binary itself is not deleted — you can move it to the trash manually.</p>
+
+    <h3>Remove a computer from the dashboard</h3>
+    <p>
+      The <em>users</em> tab in your Google Sheet lists every computer that has ever checked in.
+      To remove an entry, delete the row. Historic activity data in the <em>activity_log</em>
+      tab is unaffected.
+    </p>
+
+    <h3>Remove the dashboard entirely</h3>
+    <p>
+      Delete the Google Sheet and the Apps Script project — nothing else to clean up.
+      All data is in your Google account and goes with it.
+    </p>
+
+  </div><!-- /guide-body -->
+</div><!-- /guide-layout -->
+</div><!-- /content -->
+
+<footer>
+  <p>Ludex is open source — <a href="https://github.com/arno-vanwouwe/ludex">GPL-3.0</a> &nbsp;·&nbsp; Built for families who value transparency</p>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Install — Ludex</title>
+  <meta name="description" content="Step-by-step guide to installing Ludex on your family's computers.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-logo">lu<span>dex</span></a>
+  <ul>
+    <li><a href="install.html" class="active">Install</a></li>
+    <li><a href="guide.html">Guide</a></li>
+    <li><a href="https://github.com/arno-vanwouwe/ludex" target="_blank">GitHub</a></li>
+  </ul>
+</nav>
+
+<div class="page-hero">
+  <h1>Installation guide</h1>
+  <p>About 15 minutes, start to finish.</p>
+</div>
+
+<div class="content">
+
+  <!-- Prerequisites -->
+  <h2>Before you start</h2>
+  <p>You'll need two things:</p>
+  <div class="prereq-grid">
+    <div class="prereq-card">
+      <h4>A Google account</h4>
+      <p>Your dashboard lives in Google Sheets — free to use, data stays in your account.
+         If you don't have one, <a href="https://accounts.google.com/signup" target="_blank">create a free account here</a>.</p>
+    </div>
+    <div class="prereq-card">
+      <h4>macOS or Linux</h4>
+      <p>The agent runs on macOS (Apple Silicon) and Linux (x86-64).
+         Windows support is planned for a future release.</p>
+    </div>
+  </div>
+
+  <!-- Part 1: Dashboard -->
+  <h2>Part 1 — Create your self-hosted dashboard</h2>
+  <p>
+    This is a one-time setup. You'll create a private Google Sheet that acts as your
+    family dashboard. Your data never leaves your Google account.
+  </p>
+
+  <div class="step-block">
+    <div class="step-title"><span class="step-n">1</span> Create a new Google Sheet</div>
+    <p>Go to <a href="https://sheets.google.com" target="_blank">sheets.google.com</a> and create a blank spreadsheet.
+       Give it a name like <em>Ludex</em>.</p>
+  </div>
+
+  <div class="step-block">
+    <div class="step-title"><span class="step-n">2</span> Open the Apps Script editor</div>
+    <p>In the sheet, click <strong>Extensions → Apps Script</strong>. A code editor opens in a new tab.</p>
+  </div>
+
+  <div class="step-block">
+    <div class="step-title"><span class="step-n">3</span> Paste the Ludex script</div>
+    <p>
+      Download the latest <code>backend.zip</code> from the
+      <a href="https://github.com/arno-vanwouwe/ludex/releases" target="_blank">releases page</a>.
+      Copy the contents of each <code>.gs</code> file into the Apps Script editor,
+      creating a matching file for each one.
+    </p>
+    <div class="callout info">
+      <span class="callout-icon">ℹ️</span>
+      <span>The script editor uses <strong>+</strong> to add new files. Match the filenames exactly (e.g. <code>Code.gs</code>, <code>Menu.gs</code>, …).</span>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-title"><span class="step-n">4</span> Set up your dashboard</div>
+    <p>
+      Save the project (<kbd>Ctrl+S</kbd> / <kbd>⌘S</kbd>), then go back to your
+      Google Sheet and reload the page. A <strong>Ludex</strong> menu appears in the toolbar.
+    </p>
+    <p>Click <strong>Ludex → ① Set credentials</strong> and enter:</p>
+    <ul>
+      <li>A <strong>shared key</strong> — any long random string, e.g. <code>my-secret-key-2024</code></li>
+      <li>An <strong>admin password</strong> — used for sensitive operations; keep it separate from the shared key</li>
+    </ul>
+    <p>Click Save. Ludex creates all the data tabs automatically.</p>
+  </div>
+
+  <div class="step-block">
+    <div class="step-title"><span class="step-n">5</span> Deploy as a web app and get your Dashboard URL</div>
+    <p>Back in the Apps Script editor:</p>
+    <ol>
+      <li>Click <strong>Deploy → New deployment</strong></li>
+      <li>Select type: <strong>Web app</strong></li>
+      <li>Execute as: <strong>Me</strong></li>
+      <li>Who has access: <strong>Anyone</strong></li>
+      <li>Click <strong>Deploy</strong> and authorize when prompted</li>
+    </ol>
+    <p>
+      Copy the <strong>Web app URL</strong> — it ends in <code>/exec</code>.
+      This is your <strong>Dashboard URL</strong>. Keep it along with your shared key;
+      you'll need both when installing the agent.
+    </p>
+    <div class="callout warn">
+      <span class="callout-icon">⚠️</span>
+      <span>
+        Don't paste the regular Google Sheet URL — that won't work.
+        You need the <code>/exec</code> URL from the deployment dialog.
+      </span>
+    </div>
+
+    <div class="screenshot" style="margin-top: 16px;">
+      Screenshot: Apps Script deployment dialog — showing where to copy the /exec URL
+    </div>
+  </div>
+
+  <!-- Part 2: Agent -->
+  <h2>Part 2 — Install the agent on your child's computer</h2>
+  <p>
+    Repeat this for each computer you want to monitor. The agent runs as the logged-in
+    user — no admin rights required.
+  </p>
+
+  <div class="step-block">
+    <div class="step-title"><span class="step-n">1</span> Download the agent</div>
+    <p>
+      On the child's computer, download the latest release for the right platform from
+      the <a href="https://github.com/arno-vanwouwe/ludex/releases" target="_blank">releases page</a>:
+    </p>
+    <ul>
+      <li><strong>macOS</strong> — <code>ludex-macos-arm64.tar.gz</code></li>
+      <li><strong>Linux</strong> — <code>ludex-linux-x86_64.tar.gz</code></li>
+    </ul>
+    <p>Extract the archive. You'll find a single <code>ludex</code> binary inside.</p>
+  </div>
+
+  <div class="step-block">
+    <div class="step-title"><span class="step-n">2</span> Run the installer</div>
+    <p>Double-click the <code>ludex</code> binary (or run it from a terminal). A browser window opens:</p>
+    <div class="screenshot" style="margin: 12px 0;">
+      Screenshot: Ludex installer form in the browser
+    </div>
+    <p>Enter:</p>
+    <ul>
+      <li><strong>Dashboard URL</strong> — the <code>/exec</code> URL from Part 1, step 5</li>
+      <li><strong>Shared key</strong> — the key you set in Part 1, step 4</li>
+    </ul>
+    <p>Click <strong>Install</strong>. Ludex validates the connection and registers the agent as a background service.</p>
+    <div class="callout tip">
+      <span class="callout-icon">✅</span>
+      <span>Once installed, the agent starts automatically at login. You don't need to do anything else.</span>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-title"><span class="step-n">3</span> Add the child's friendly name</div>
+    <p>
+      In your dashboard, click <strong>Ludex → Edit names</strong>.
+      Each computer that has checked in will appear in the <em>people</em> tab.
+      Replace the system username with your child's name — this is what appears in the dashboard.
+    </p>
+  </div>
+
+  <!-- Next steps -->
+  <h2>Next steps</h2>
+  <p>You're set up. A few things worth doing now:</p>
+  <ul>
+    <li><strong>Define activities</strong> — Ludex ships with common games and apps pre-defined. Review and adjust them for your family. See the <a href="guide.html#activities">activity guide</a>.</li>
+    <li><strong>Set limits</strong> — Click <strong>Ludex → Edit activity limits</strong> to set daily time limits and warning thresholds per activity.</li>
+    <li><strong>Add an alert email</strong> — In the <em>people</em> tab, add your email address so you're notified when a daily limit is crossed.</li>
+  </ul>
+
+  <div class="callout info" style="margin-top: 32px;">
+    <span class="callout-icon">ℹ️</span>
+    <span>The dashboard updates every few minutes as the agent syncs. Click <strong>Ludex → Refresh dashboard</strong> to force an immediate refresh.</span>
+  </div>
+
+</div>
+
+<footer>
+  <p>Ludex is open source — <a href="https://github.com/arno-vanwouwe/ludex">GPL-3.0</a> &nbsp;·&nbsp; Built for families who value transparency</p>
+</footer>
+
+</body>
+</html>
