@@ -27,7 +27,7 @@ a { color: var(--navy); text-decoration: none; }
 a:hover { text-decoration: underline; }
 
 /* ── Nav ── */
-nav {
+.site-nav {
   position: sticky; top: 0; z-index: 10;
   background: var(--navy);
   display: flex; align-items: center; justify-content: space-between;
@@ -37,13 +37,13 @@ nav {
   font-weight: 700; font-size: 18px; color: #fff; letter-spacing: -0.5px;
 }
 .nav-logo span { color: var(--accent); }
-nav ul { list-style: none; display: flex; gap: 8px; }
-nav ul a {
+.site-nav ul { list-style: none; display: flex; gap: 8px; }
+.site-nav ul a {
   color: rgba(255,255,255,0.85); font-size: 14px; font-weight: 500;
   padding: 6px 12px; border-radius: 6px; transition: background 0.15s;
 }
-nav ul a:hover { background: rgba(255,255,255,0.12); text-decoration: none; color: #fff; }
-nav ul a.active { color: #fff; background: rgba(255,255,255,0.15); }
+.site-nav ul a:hover { background: rgba(255,255,255,0.12); text-decoration: none; color: #fff; }
+.site-nav ul a.active { color: #fff; background: rgba(255,255,255,0.15); }
 
 /* ── Hero ── */
 .hero {
