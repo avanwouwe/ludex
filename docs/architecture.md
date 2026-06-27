@@ -132,8 +132,19 @@ it directly (the dashboard is built on these later).
 
 UI-only tabs (not touched by the agent): **`dashboard`** (generated minutes per day/user/activity,
 with rows highlighted red when over an activity's `daily_max_minutes` / amber when within
-`warn_before_minutes`), and **`people`** (optional `user_id` → friendly name; auto-seeded with each
-user's system username, edit the `name` column via **Ludex ▸ Edit names**).
+`warn_before_minutes`), and **`people`** (optional `user_id` → friendly `name` + alert `email`(s);
+auto-seeded with each user's system username, edited via **Ludex ▸ Edit names**).
+
+### Alerts (email)
+
+Two server-side email alerts (require the `script.send_mail` scope; recipients come from the
+`people` tab's `email` column — comma-separated for several, falling back to all addresses if a
+child has none):
+- **Heartbeat gap** — an hourly trigger emails when a computer hasn't checked in for
+  `offline_alert_days` (default 7). This is the bypass-awareness signal — stopping the agent makes
+  the device go quiet, which becomes a notification — and needs no privilege.
+- **Daily limit reached** — when a `PutActivityLog` pushes a day's total for an activity over its
+  `daily_max_minutes`, the parent is emailed once for that user/activity/day.
 
 ### Log growth & maintenance
 

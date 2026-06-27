@@ -10,7 +10,8 @@ var CONFIG_FIELDS = [
   { key: "sample_interval_s",   label: "Sample interval (seconds)",  desc: "How often the agent checks what's running." },
   { key: "sync_interval_s",     label: "Sync interval (seconds)",    desc: "How often the agent talks to this sheet." },
   { key: "warn_before_minutes", label: "Default warn-before (min)",  desc: "Minutes before a daily limit to warn, if an activity doesn't set its own." },
-  { key: "raw_retention_days",  label: "Keep raw log (days)",        desc: "Days of detailed log kept before rolling into the archive." }
+  { key: "raw_retention_days",  label: "Keep raw log (days)",        desc: "Days of detailed log kept before rolling into the archive." },
+  { key: "offline_alert_days",  label: "Offline alert after (days)", desc: "Email when a computer hasn't checked in for this many days." }
 ];
 
 var LIMIT_FIELDS = ["daily_max_minutes", "pause_after_minutes", "pause_duration_minutes", "warn_before_minutes"];

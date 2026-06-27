@@ -17,9 +17,13 @@ If someone shared a Ludex template with you, you don't touch any code — see th
 ## Manual steps (for developers, or to set it up from scratch)
 
 1. Create a new Google Sheet (this becomes the database).
-2. **Extensions → Apps Script**. Paste `backend/Code.gs` over the stub, then add files for
-   `backend/Menu.gs` and `backend/Dashboard.gs` (the menu/dashboard UI). Reload the Sheet and the
-   **Ludex** menu appears — you can use **Ludex ▸ ① Set credentials** instead of steps 3–4 below.
+2. **Extensions → Apps Script**. Paste `backend/Code.gs` over the stub, then add every other file in
+   `backend/` — the `.gs` files (`Menu`, `Dashboard`, `Maintenance`, `StandardActivities`, `Forms`,
+   `Alerts`) and the `.html` files (`Setup`, `Command`, `Settings`, `Limits`) — and the
+   `appsscript.json` manifest (its `oauthScopes` enable the menu UI and email alerts:
+   `spreadsheets.currentonly`, `script.container.ui`, `script.send_mail`, `script.scriptapp`).
+   Reload the Sheet and the **Ludex** menu appears — use **Ludex ▸ ① Set credentials**, which also
+   creates the tabs and schedules nightly maintenance + the hourly offline check.
 3. Set secrets via **Project Settings → Script Properties** (recommended over editing the literals):
    - `SHARED_TOKEN` — the shared key every agent uses (long random string).
    - `ADMIN_PASSWORD` — required for `PutActivityType` (adding activities via `--detect-app`).

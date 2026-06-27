@@ -8,7 +8,8 @@
  */
 
 var DASHBOARD_SHEET = "dashboard";
-var PEOPLE = { name: "people", headers: ["user_id", "name"] };  // optional friendly names
+// optional friendly names + alert recipients (email may be comma/semicolon-separated for several)
+var PEOPLE = { name: "people", headers: ["user_id", "name", "email"] };
 
 function ludexRefreshDashboard() {
   buildDashboard_();
@@ -24,6 +25,9 @@ function buildDashboardSheet_() {
 // just edits the friendly name. Never overwrites a name the parent set.
 function syncPeople_() {
   var pT = table_(PEOPLE);
+  // repair/extend the header (adds the `email` column to older people tabs)
+  SpreadsheetApp.getActiveSpreadsheet().getSheetByName(PEOPLE.name)
+    .getRange(1, 1, 1, PEOPLE.headers.length).setValues([PEOPLE.headers]);
   var have = {};
   pT.rows().forEach(function (r) { if (r.user_id) have[r.user_id] = true; });
   table_(SHEETS.users).rows().forEach(function (u) {
@@ -141,7 +145,8 @@ function ludexEditNames() {
   var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(PEOPLE.name);
   if (sh) sh.activate();
   SpreadsheetApp.getActiveSpreadsheet().toast(
-    "Edit the 'name' column, then Ludex ▸ Refresh dashboard.", "Ludex", 6);
+    "Edit the 'name' column, and add alert 'email' addresses (comma-separated). "
+    + "Then Ludex ▸ Refresh dashboard.", "Ludex", 8);
 }
 
 // Command entry, settings and limits editors now live in Forms.gs (HTML dialogs).

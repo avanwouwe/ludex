@@ -35,7 +35,8 @@ var DEFAULT_CONFIG = {
   sample_interval_s: "20",
   sync_interval_s: "300",
   warn_before_minutes: "10",
-  raw_retention_days: "3"   // raw activity_log rows older than this are rolled into activity_daily
+  raw_retention_days: "3",       // raw activity_log rows older than this are rolled into activity_daily
+  offline_alert_days: "7"        // email if a computer hasn't checked in for this many days
 };
 
 // ===== HTTP entry points =====
@@ -164,6 +165,13 @@ function PutActivityLog_(p) {
       });
     });
   }
+
+  // Email the parent if a daily limit was just crossed (once per user/activity/day).
+  var tz = SpreadsheetApp.getActiveSpreadsheet().getSpreadsheetTimeZone();
+  acts.forEach(function (a) {
+    if (a.activity_id) { try { checkLimitExceeded_(p.user_id, a.activity_id, tz); } catch (e) {} }
+  });
+
   return { stored: true, rows: Math.max(1, acts.length) };
 }
 

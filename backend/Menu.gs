@@ -67,7 +67,10 @@ function ludexSaveCredentials(token, admin) {
   p.setProperty("ADMIN_PASSWORD", admin);
 
   ludexSetup();                  // create/repair the data tabs, dashboard, people, formatting
-  if (firstTime) enableNightlyMaintenance_();  // schedule the nightly rollup automatically
+  if (firstTime) {
+    enableNightlyMaintenance_(); // schedule the nightly rollup
+    enableHeartbeat_();          // schedule the hourly offline-device check
+  }
   buildMenu_();                  // reveal the full menu now that we're configured
 
   SpreadsheetApp.getActiveSpreadsheet().toast(
