@@ -78,7 +78,10 @@ class LinuxPlatform(Platform):
             "WantedBy=default.target\n"
         )
         subprocess.run(["systemctl", "--user", "daemon-reload"], check=False)
-        subprocess.run(["systemctl", "--user", "enable", "--now", _SERVICE_NAME], check=False)
+        subprocess.run(["systemctl", "--user", "enable", _SERVICE_NAME], check=False)
+        # restart (not just enable --now): on a re-install this picks up a changed URL/token,
+        # since a still-running unit would otherwise keep the old Environment values.
+        subprocess.run(["systemctl", "--user", "restart", _SERVICE_NAME], check=False)
         # Optional: keep running after logout. Needs privileges; ignore failure.
         subprocess.run(["loginctl", "enable-linger", os.environ.get("USER", "")], check=False)
         return f"installed systemd user service at {unit}"

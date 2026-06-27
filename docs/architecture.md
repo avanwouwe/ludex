@@ -92,6 +92,12 @@ Warnings are shown locally when:
 - a **pause is due**,
 - the **daily limit** is reached, and **N minutes before** it is.
 
+Warnings use a **modal dialog**, not a Notification Center banner: banners are silenced by Do Not
+Disturb / macOS Game Mode (which auto-engages during full-screen games — exactly when a warning
+matters), whereas a focus-grabbing dialog surfaces over a full-screen game. A game using
+exclusive-fullscreen display capture can still hide it until the user switches out; the hard lever
+in that case is the parent's `stop-activity` command.
+
 **Enforcement is manual.** Ludex never auto-kills or auto-shuts-down on a limit. The parent reacts by
 queueing a command in the Sheet. (A future opt-in "auto-enforce" mode is possible but out of scope.)
 
@@ -144,7 +150,7 @@ The platform-specific surface is small:
 |----------------------|--------------------------------|----------------------------|----------------------------|
 | Process enumeration  | `psutil` (cross-platform)      | `psutil`                   | `psutil`                   |
 | Machine ID           | `/etc/machine-id`              | `IOPlatformUUID` (ioreg)   | registry `MachineGuid`     |
-| Notifications        | `notify-send` / D-Bus          | `osascript` notification   | toast / `win10toast`       |
+| Warnings (visible)   | `notify-send` / D-Bus          | `osascript` modal dialog   | toast / message box        |
 | Shutdown             | `systemctl poweroff` / `shutdown` | `osascript` System Events | `shutdown /s`              |
 | Service install      | systemd **user** unit          | LaunchAgent (`launchctl`)  | Scheduled Task / service   |
 

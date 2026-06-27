@@ -17,6 +17,9 @@ _UUID_RE = re.compile(r'"IOPlatformUUID"\s*=\s*"([^"]+)"')
 class DarwinPlatform(Platform):
     name = "darwin"
 
+    def __init__(self):
+        self._pending = []  # detached osascript dialog processes, reaped lazily
+
     def machine_id(self) -> str:
         try:
             out = subprocess.run(
@@ -32,11 +35,26 @@ class DarwinPlatform(Platform):
         return os.uname().nodename
 
     def notify(self, title: str, message: str) -> None:
-        # Escape double quotes for the AppleScript string literals.
-        msg = message.replace('"', '\\"')
-        ttl = title.replace('"', '\\"')
-        script = f'display notification "{msg}" with title "{ttl}"'
-        subprocess.run(["osascript", "-e", script], check=False)
+        # A modal alert (not a Notification Center banner): it isn't subject to Do Not Disturb /
+        # macOS Game Mode notification-silencing, grabs focus, and so surfaces over a full-screen
+        # game. (A game using exclusive-fullscreen display capture can still hide it until the
+        # user switches out — that's inherent; the parent's stop-activity command is the hard lever.)
+        # We present it via System Events (always running, can show UI from a background agent),
+        # spawn it detached so the agent loop never blocks waiting for a click, and `giving up
+        # after` so a stale dialog self-dismisses.
+        self._pending = [p for p in self._pending if p.poll() is None]  # reap finished dialogs
+        msg = message.replace("\\", "\\\\").replace('"', '\\"')
+        ttl = title.replace("\\", "\\\\").replace('"', '\\"')
+        script = (
+            f'tell application "System Events" to display dialog "{msg}" '
+            f'with title "{ttl}" buttons {{"OK"}} default button "OK" '
+            f"with icon caution giving up after 120"
+        )
+        p = subprocess.Popen(
+            ["osascript", "-e", script],
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True,
+        )
+        self._pending.append(p)
 
     def shutdown(self) -> str:
         # As a normal user, ask System Events to shut down (the GUI path). `shutdown -h`

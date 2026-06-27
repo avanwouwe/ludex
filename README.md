@@ -66,8 +66,16 @@ python3 -m venv .venv && .venv/bin/pip install -e '.[build]'
 
 # Other commands
 ./dist/ludex detect-app         # turn a running process into an activity definition
-./dist/ludex uninstall          # remove the service
+./dist/ludex uninstall          # stop and remove the service
 ```
+
+**Changing the shared key or backend URL:** run `./dist/ludex install` again with the new values.
+It re-validates against the backend, rewrites the service definition, and restarts the agent in
+place so the new credentials take effect immediately.
+
+**Uninstalling:** `./dist/ludex uninstall` stops the agent and removes the service (the systemd user
+unit on Linux, the LaunchAgent on macOS). Nothing else is left on disk — the agent never wrote
+anything outside the service definition.
 
 The URL + shared key are stored only in the service definition's environment (no config file);
 see [`docs/architecture.md`](docs/architecture.md) §9.
