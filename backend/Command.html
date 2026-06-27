@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <style>
+      body { font-family: Arial, sans-serif; font-size: 13px; margin: 16px; }
+      label { display: block; font-weight: bold; margin: 12px 0 4px; }
+      select, input { width: 100%; box-sizing: border-box; padding: 7px; }
+      button { margin-top: 16px; padding: 8px 16px; }
+      .muted { color: #666; }
+      #status { margin-left: 10px; }
+    </style>
+  </head>
+  <body>
+    <label>Computer</label>
+    <select id="user"></select>
+
+    <label>Command</label>
+    <select id="type" onchange="onType()">
+      <option value="notify-user">Show a message</option>
+      <option value="stop-activity">Stop an activity</option>
+      <option value="shutdown-endpoint">Shut down the computer</option>
+      <option value="reload-config">Reload settings</option>
+    </select>
+
+    <div id="paramRow"></div>
+
+    <button id="send" onclick="send()">Send</button>
+    <span id="status" class="muted"></span>
+
+    <script>
+      var ACTS = [];
+      function st(m) { document.getElementById('status').textContent = m; }
+
+      google.script.run
+        .withSuccessHandler(init)
+        .withFailureHandler(function (e) { st(e.message); })
+        .getCommandFormData();
+
+      function init(d) {
+        ACTS = d.activities || [];
+        var us = document.getElementById('user');
+        (d.users || []).forEach(function (u) {
+          var o = document.createElement('option'); o.value = u.id; o.text = u.label; us.add(o);
+        });
+        onType();
+      }
+
+      function onType() {
+        var t = document.getElementById('type').value, row = document.getElementById('paramRow');
+        if (t === 'notify-user') {
+          row.innerHTML = '<label>Message</label><input id="param" type="text">';
+        } else if (t === 'stop-activity') {
+          var opts = ACTS.map(function (a) { return '<option value="' + a + '">' + a + '</option>'; }).join('');
+          row.innerHTML = '<label>Activity</label><select id="param">' + opts + '</select>';
+        } else {
+          row.innerHTML = '';
+        }
+      }
+
+      function send() {
+        var user = document.getElementById('user').value;
+        var type = document.getElementById('type').value;
+        var pe = document.getElementById('param');
+        var params = pe ? pe.value : '';
+        document.getElementById('send').disabled = true;
+        st('Sending…');
+        google.script.run
+          .withSuccessHandler(function () { google.script.host.close(); })
+          .withFailureHandler(function (e) { document.getElementById('send').disabled = false; st(e.message); })
+          .ludexQueueCommand(user, type, params);
+      }
+    </script>
+  </body>
+</html>

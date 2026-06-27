@@ -132,48 +132,4 @@ function ludexEditNames() {
     "Edit the 'name' column, then Ludex ▸ Refresh dashboard.", "Ludex", 6);
 }
 
-// ===== Command entry (friendlier than hand-editing the commands tab) =====
-var COMMAND_TYPES = ["notify-user", "stop-activity", "shutdown-endpoint", "reload-config"];
-
-function ludexSendCommand() {
-  var ui = SpreadsheetApp.getUi();
-  var users = table_(SHEETS.users).rows();
-  if (!users.length) {
-    ui.alert("No users yet — an agent has to check in at least once first.");
-    return;
-  }
-
-  var list = users.map(function (u, i) {
-    return (i + 1) + ". " + (u.system_username || "?") + " @ " + (u.hostname || "?");
-  }).join("\n");
-  var r1 = ui.prompt("Send command (1 of 3)", "Which computer?\n\n" + list + "\n\nType a number:",
-                     ui.ButtonSet.OK_CANCEL);
-  if (r1.getSelectedButton() !== ui.Button.OK) return;
-  var idx = parseInt(r1.getResponseText().trim(), 10) - 1;
-  if (isNaN(idx) || idx < 0 || idx >= users.length) { ui.alert("Invalid selection."); return; }
-  var user = users[idx];
-
-  var r2 = ui.prompt("Send command (2 of 3)",
-    "Command type — type one of:\n  " + COMMAND_TYPES.join("\n  "),
-    ui.ButtonSet.OK_CANCEL);
-  if (r2.getSelectedButton() !== ui.Button.OK) return;
-  var type = r2.getResponseText().trim();
-  if (COMMAND_TYPES.indexOf(type) < 0) { ui.alert("Unknown command type."); return; }
-
-  var params = "";
-  if (type === "notify-user" || type === "stop-activity") {
-    var label = type === "notify-user" ? "Message to show on the computer:" : "activity_id to stop (e.g. chrome):";
-    var r3 = ui.prompt("Send command (3 of 3)", label, ui.ButtonSet.OK_CANCEL);
-    if (r3.getSelectedButton() !== ui.Button.OK) return;
-    params = r3.getResponseText().trim();
-  }
-
-  var id = "cmd-" + Date.now() + "-" + Math.floor(Math.random() * 1000);
-  table_(SHEETS.commands).append({
-    command_id: id, user_id: user.user_id, command_type: type, params: params,
-    status: "pending", created: new Date(), executed: "", result: ""
-  });
-  ui.alert("Queued ✓",
-    "Queued '" + type + "' for " + (user.system_username || user.user_id)
-    + ".\nThe agent will run it on its next sync.", ui.ButtonSet.OK);
-}
+// Command entry, settings and limits editors now live in Forms.gs (HTML dialogs).

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <style>
+      body { font-family: Arial, sans-serif; font-size: 13px; margin: 16px; }
+      label { display: block; font-weight: bold; margin: 10px 0 4px; }
+      .desc { color: #666; font-weight: normal; font-size: 12px; }
+      select, input { width: 100%; box-sizing: border-box; padding: 7px; }
+      button { margin-top: 16px; padding: 8px 16px; }
+      .muted { color: #666; }
+      #warn { color: #a00; margin-top: 8px; }
+      #status { margin-left: 10px; }
+    </style>
+  </head>
+  <body>
+    <label>Activity</label>
+    <select id="act" onchange="fill()"></select>
+    <div id="warn"></div>
+
+    <label>Daily maximum (minutes) <span class="desc">total per day; blank = no limit</span></label>
+    <input id="daily_max_minutes" type="number" min="1">
+    <label>Break after (minutes) <span class="desc">continuous use before a break is due</span></label>
+    <input id="pause_after_minutes" type="number" min="1">
+    <label>Break length (minutes)</label>
+    <input id="pause_duration_minutes" type="number" min="1">
+    <label>Warn before (minutes) <span class="desc">warn this long before the daily max</span></label>
+    <input id="warn_before_minutes" type="number" min="1">
+
+    <button id="save" onclick="save()">Save</button>
+    <span id="status" class="muted"></span>
+
+    <script>
+      var DATA = [];
+      var FIELDS = ['daily_max_minutes', 'pause_after_minutes', 'pause_duration_minutes', 'warn_before_minutes'];
+      function st(m) { document.getElementById('status').textContent = m; }
+
+      google.script.run
+        .withSuccessHandler(init)
+        .withFailureHandler(function (e) { st(e.message); })
+        .getLimitsData();
+
+      function init(d) {
+        DATA = d || [];
+        var s = document.getElementById('act');
+        DATA.forEach(function (a, i) { var o = document.createElement('option'); o.value = i; o.text = a.id; s.add(o); });
+        fill();
+      }
+
+      function cur() { return DATA[document.getElementById('act').value]; }
+
+      function fill() {
+        var a = cur(); if (!a) return;
+        var editable = (a.limits !== null);
+        document.getElementById('warn').textContent = editable ? ''
+          : 'This activity is not editable here (its definition is not JSON). Edit it in the activity_types tab.';
+        document.getElementById('save').disabled = !editable;
+        var lim = a.limits || {};
+        FIELDS.forEach(function (k) { document.getElementById(k).value = (lim && lim[k] != null) ? lim[k] : ''; });
+      }
+
+      function save() {
+        var a = cur(); if (!a) return;
+        var lim = {};
+        FIELDS.forEach(function (k) { lim[k] = document.getElementById(k).value; });
+        document.getElementById('save').disabled = true;
+        st('Saving…');
+        google.script.run
+          .withSuccessHandler(function () { google.script.host.close(); })
+          .withFailureHandler(function (e) { document.getElementById('save').disabled = false; st(e.message); })
+          .ludexSaveLimits(a.id, lim);
+      }
+    </script>
+  </body>
+</html>

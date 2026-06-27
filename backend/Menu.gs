@@ -15,6 +15,8 @@ function onOpen() {
     .addItem("Show backend address…", "ludexShowBackendUrl")
     .addItem("Check setup", "ludexCheckSetup")
     .addItem("Install standard activities", "ludexInstallStandardActivities")
+    .addItem("Edit activity limits…", "ludexLimits")
+    .addItem("Settings…", "ludexSettings")
     .addSeparator()
     .addItem("Refresh dashboard", "ludexRefreshDashboard")
     .addItem("Edit names", "ludexEditNames")
@@ -56,9 +58,10 @@ function ludexSaveCredentials(token, admin) {
 }
 
 function ludexSetup() {
-  setup();                 // from Code.gs: creates data tabs + seeds config defaults
-  buildDashboardSheet_();  // ensure the dashboard tab exists
-  syncPeople_();           // ensure the people (friendly names) tab exists
+  setup();                  // from Code.gs: creates data tabs + seeds config defaults
+  buildDashboardSheet_();   // ensure the dashboard tab exists
+  syncPeople_();            // ensure the people (friendly names) tab exists
+  applyCommandFormatting_();// color the commands status column (pending/done/failed)
   SpreadsheetApp.getActiveSpreadsheet().toast("Sheets ready.", "Ludex", 4);
 }
 

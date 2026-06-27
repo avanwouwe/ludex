@@ -122,7 +122,8 @@ it directly (the dashboard is built on these later).
   A starter set of common games can be seeded via **Ludex ▸ Install standard activities**.
 - **`commands`** — `command_id`, `user_id`, `command_type`, `params`, `status`
   (`pending` → `done`/`failed`), `created`, `executed`, `result`. The agent reads `pending`,
-  executes, and writes back status.
+  executes, and writes back status. The status column is auto-colored (amber/green/red); queue
+  commands via **Ludex ▸ Send a command…** rather than editing rows by hand.
 - **`activity_daily`** — compact archive: one row per `(date, user_id, activity_id)` with summed
   `seconds`. Written by maintenance (below); read by the dashboard. The agent never touches it.
 

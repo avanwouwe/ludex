@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <style>
+      body { font-family: Arial, sans-serif; font-size: 13px; margin: 16px; }
+      label { display: block; font-weight: bold; margin: 12px 0 4px; }
+      .desc { color: #666; font-weight: normal; font-size: 12px; }
+      input { width: 100%; box-sizing: border-box; padding: 7px; }
+      button { margin-top: 16px; padding: 8px 16px; }
+      .muted { color: #666; }
+      #status { margin-left: 10px; }
+    </style>
+  </head>
+  <body>
+    <div id="fields"></div>
+    <button id="save" onclick="save()">Save</button>
+    <span id="status" class="muted"></span>
+
+    <script>
+      var KEYS = [];
+      function st(m) { document.getElementById('status').textContent = m; }
+
+      google.script.run
+        .withSuccessHandler(init)
+        .withFailureHandler(function (e) { st(e.message); })
+        .getSettings();
+
+      function init(fields) {
+        KEYS = fields.map(function (f) { return f.key; });
+        document.getElementById('fields').innerHTML = fields.map(function (f) {
+          return '<label>' + f.label + '<div class="desc">' + f.desc + '</div></label>'
+            + '<input id="f_' + f.key + '" type="number" min="1" value="' + (f.value || '') + '">';
+        }).join('');
+      }
+
+      function save() {
+        var v = {};
+        KEYS.forEach(function (k) { v[k] = document.getElementById('f_' + k).value; });
+        document.getElementById('save').disabled = true;
+        st('Saving…');
+        google.script.run
+          .withSuccessHandler(function () { google.script.host.close(); })
+          .withFailureHandler(function (e) { document.getElementById('save').disabled = false; st(e.message); })
+          .ludexSaveSettings(v);
+      }
+    </script>
+  </body>
+</html>
