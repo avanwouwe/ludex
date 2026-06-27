@@ -1,0 +1,33 @@
+# IDE
+.idea/
+.vscode/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# PyInstaller build artifacts
+build/
+dist/
+*.spec.bak
+
+# Local agent config / secrets (shared key, backend URL)
+*.local.json
+ludex.config.json
+.env
+.env.*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Apps Script tooling (clasp)
+.clasprc.json
