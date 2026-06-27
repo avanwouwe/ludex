@@ -89,6 +89,8 @@ see [`docs/architecture.md`](docs/architecture.md) §9.
 
 ## Documentation
 
+- [`docs/for-parents.md`](docs/for-parents.md) — **plain-language install guide for non-developers**
+  (copy the Sheet, set credentials, deploy, install the agent).
 - [`docs/architecture.md`](docs/architecture.md) — full system design, agent lifecycle, backend
   sheets, platform abstraction.
 - [`docs/protocol.md`](docs/protocol.md) — the batched request/response contract between agent and

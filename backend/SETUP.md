@@ -3,26 +3,16 @@
 The backend is a Google Apps Script web app bound to a Google Sheet. The Sheet is both the database
 and the parent's dashboard.
 
-## Easy path: copy a ready-made Sheet (for non-developers)
+## Easy path: copy a ready-made Sheet
 
-If someone shares a Ludex template Sheet with you, you don't touch any code:
-
-1. Open the shared link and choose **Make a copy** (File ▸ Make a copy). This copies the Ludex code
-   with the Sheet. (It does **not** copy the original's password or web-app deployment — you set up
-   your own below, which is what you want.)
-2. Reload the copy. A **Ludex** menu appears. Click **Ludex ▸ ① Set credentials** and enter your own
-   shared key and admin password. This also creates the data tabs.
-3. Click **Ludex ▸ ③ How to deploy the backend** and follow the 5 steps to publish the web app, then
-   copy the `/exec` URL.
-4. Run `ludex install` on each computer with that URL and shared key.
+If someone shared a Ludex template with you, you don't touch any code — see the plain-language
+[**parent install guide**](../docs/for-parents.md). In short: *Make a copy* of the Sheet, then use the
+**Ludex** menu (▸ ① Set credentials, ▸ ③ How to deploy).
 
 > **Publishing your own template for others:** take your configured Sheet's URL and replace the
 > trailing `/edit...` with `/copy`. Sharing that `/copy` link gives other parents the "Make a copy"
-> flow above. (They set their own credentials; yours are never shared, since Script Properties and
-> deployments don't travel with a copy.)
-
-Manage day-to-day from the **Ludex** menu: **Refresh dashboard** (minutes per day/user/activity) and
-**Send a command…** (queue notify / stop-activity / shutdown / reload without editing rows by hand).
+> flow. They set their own credentials; yours are never shared, since Script Properties and
+> deployments don't travel with a copy.
 
 ## Manual steps (for developers, or to set it up from scratch)
 
