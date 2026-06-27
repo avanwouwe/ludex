@@ -12,6 +12,8 @@ function onOpen() {
     .addItem("① Set credentials…", "ludexSetCredentials")
     .addItem("② Create / repair sheets", "ludexSetup")
     .addItem("③ How to deploy the backend…", "ludexDeployHelp")
+    .addItem("Show backend address…", "ludexShowBackendUrl")
+    .addItem("Check setup", "ludexCheckSetup")
     .addSeparator()
     .addItem("Refresh dashboard", "ludexRefreshDashboard")
     .addItem("Send a command…", "ludexSendCommand")
@@ -31,30 +33,23 @@ function ludexIsConfigured_() {
   return !!p.getProperty("SHARED_TOKEN") && !!p.getProperty("ADMIN_PASSWORD");
 }
 
+// ① Credentials — a small masked HTML form (passwords aren't echoed in plain prompts).
 function ludexSetCredentials() {
-  var ui = SpreadsheetApp.getUi();
-  var props = PropertiesService.getScriptProperties();
+  var html = HtmlService.createHtmlOutputFromFile("Setup").setWidth(420).setHeight(320);
+  SpreadsheetApp.getUi().showModalDialog(html, "Ludex — set credentials");
+}
 
-  var r1 = ui.prompt("Ludex setup (1 of 2)",
-    "Shared key — every agent on your computers uses this. Make it long and secret:",
-    ui.ButtonSet.OK_CANCEL);
-  if (r1.getSelectedButton() !== ui.Button.OK) return;
-  var token = r1.getResponseText().trim();
-
-  var r2 = ui.prompt("Ludex setup (2 of 2)",
-    "Admin password — needed to add activities and to clean up data:",
-    ui.ButtonSet.OK_CANCEL);
-  if (r2.getSelectedButton() !== ui.Button.OK) return;
-  var admin = r2.getResponseText().trim();
-
-  if (!token || !admin) { ui.alert("Both values are required — nothing was saved."); return; }
-  props.setProperty("SHARED_TOKEN", token);
-  props.setProperty("ADMIN_PASSWORD", admin);
-
+// called from Setup.html via google.script.run
+function ludexSaveCredentials(token, admin) {
+  token = (token || "").trim();
+  admin = (admin || "").trim();
+  if (!token || !admin) throw new Error("Both fields are required.");
+  var p = PropertiesService.getScriptProperties();
+  p.setProperty("SHARED_TOKEN", token);
+  p.setProperty("ADMIN_PASSWORD", admin);
   ludexSetup();  // make sure the data tabs exist
-  ui.alert("Saved ✓",
-    "Credentials stored. Next step: deploy the backend as a web app — "
-    + "open the Ludex menu ▸ ③ How to deploy.", ui.ButtonSet.OK);
+  SpreadsheetApp.getActiveSpreadsheet().toast(
+    "Credentials saved. Next: Ludex ▸ ③ How to deploy.", "Ludex", 6);
 }
 
 function ludexSetup() {
@@ -71,8 +66,64 @@ function ludexDeployHelp() {
     + "3. Execute as:  Me\n"
     + "4. Who has access:  Anyone\n"
     + "5. Click Deploy, authorize, and copy the Web app URL (ends in /exec)\n\n"
-    + "Give that URL and your shared key to each computer's agent:  ludex install\n\n"
+    + "Then use Ludex ▸ Show backend address to get the short ID for each computer's "
+    + "`ludex install`.\n\n"
     + "If you change the code later, repeat with Deploy ▸ Manage deployments ▸ "
     + "edit ▸ New version (this keeps the same URL).",
     SpreadsheetApp.getUi().ButtonSet.OK);
+}
+
+// Show the deployed backend ID + /exec URL with copy buttons. We rebuild the /exec URL from the
+// deployment ID so it's always the production form (never the /dev test URL getUrl() can return).
+function ludexShowBackendUrl() {
+  var ui = SpreadsheetApp.getUi();
+  var raw = "";
+  try { raw = ScriptApp.getService().getUrl() || ""; } catch (e) {}
+  var m = raw.match(/\/s\/([^\/]+)\//);
+  if (!m) {
+    ui.alert("Not deployed yet",
+      "Deploy the backend first (Ludex ▸ ③ How to deploy), then try again.", ui.ButtonSet.OK);
+    return;
+  }
+  var id = m[1];
+  var url = "https://script.google.com/macros/s/" + id + "/exec";
+  var html = '<!DOCTYPE html><html><head><base target="_top"><style>'
+    + 'body{font-family:Arial,sans-serif;font-size:13px;margin:16px}'
+    + 'label{font-weight:bold;display:block;margin-top:12px}'
+    + 'input{width:100%;box-sizing:border-box;padding:6px;font-family:monospace}'
+    + 'button{margin-top:6px;padding:6px 12px}.muted{color:#666}</style></head><body>'
+    + '<div class="muted">Give the <b>Backend ID</b> (or the full URL) to each computer when you run '
+    + '<code>ludex install</code>.</div>'
+    + '<label>Backend ID</label><input id="id" readonly value="' + id + '">'
+    + '<button onclick="cp(\'id\')">Copy ID</button>'
+    + '<label>Full URL</label><input id="url" readonly value="' + url + '">'
+    + '<button onclick="cp(\'url\')">Copy URL</button> <span id="s" class="muted"></span>'
+    + '<script>function cp(k){var e=document.getElementById(k);e.select();'
+    + 'navigator.clipboard.writeText(e.value).then(function(){document.getElementById("s").textContent="copied!";});}<\/script>'
+    + '</body></html>';
+  ui.showModalDialog(HtmlService.createHtmlOutput(html).setWidth(540).setHeight(260), "Ludex backend address");
+}
+
+// In-process setup check (no external request scope needed).
+function ludexCheckSetup() {
+  var ui = SpreadsheetApp.getUi();
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var lines = [];
+  lines.push(ludexIsConfigured_() ? "✓ Credentials are set"
+    : "✗ Credentials NOT set — use ① Set credentials");
+
+  var need = ["config", "users", "activity_log", "activity_types", "commands"];
+  var missing = need.filter(function (n) { return !ss.getSheetByName(n); });
+  lines.push(missing.length ? "✗ Missing tabs: " + missing.join(", ") + " — use ② Create / repair sheets"
+    : "✓ All data tabs exist");
+
+  var raw = "";
+  try { raw = ScriptApp.getService().getUrl() || ""; } catch (e) {}
+  lines.push(raw ? "✓ Web app is deployed" : "✗ Not deployed — use ③ How to deploy");
+
+  try { GetConfig_({}); lines.push("✓ Backend logic responds"); }
+  catch (e) { lines.push("✗ Backend error: " + e.message); }
+
+  lines.push("", "Final check: open your /exec URL in a browser — it should say \"ludex backend alive\".");
+  ui.alert("Ludex setup check", lines.join("\n"), ui.ButtonSet.OK);
 }

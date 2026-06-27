@@ -20,9 +20,9 @@ Everything Ludex records lives in **your own Google Sheet**. No one else can see
    - an **admin password** — used when you add new activities or clean up data.
    
    Write both down somewhere safe.
-4. Click **Ludex ▸ ③ How to deploy the backend** and follow the five steps it shows. At the end you
-   copy a **web address ending in `/exec`** — this is your backend's address. Keep it with your
-   shared key.
+4. Click **Ludex ▸ ③ How to deploy the backend** and follow the five steps it shows. Then click
+   **Ludex ▸ Show backend address** and copy your **Backend ID** (a short code) — that, plus your
+   shared key, is what each computer needs.
 
 That's the database done. The **Ludex** menu is also where you'll manage things day to day (see
 Part 3).
@@ -32,8 +32,8 @@ Part 3).
 ## Part 2 — The agent (on each child's computer)
 
 The agent is a small app that runs quietly as your child's normal user account (it needs no
-administrator rights). You'll need the **backend address** (the `/exec` URL) and your **shared key**
-from Part 1.
+administrator rights). You'll need your **Backend ID** (or the full `/exec` URL) and your **shared
+key** from Part 1 — `ludex install` accepts either.
 
 **Download it** from the releases page — pick the file for that computer:
 
