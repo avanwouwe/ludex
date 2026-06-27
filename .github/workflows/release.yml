@@ -31,8 +31,6 @@ jobs:
         include:
           - os: ubuntu-22.04   # older glibc => runs on more Linux distros
             label: linux-x86_64
-          - os: macos-13       # Intel
-            label: macos-x86_64
           - os: macos-14       # Apple Silicon
             label: macos-arm64
     runs-on: ${{ matrix.os }}

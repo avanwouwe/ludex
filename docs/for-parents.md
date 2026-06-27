@@ -41,13 +41,9 @@ from Part 1.
 
 | Computer | File to download |
 |----------|------------------|
-| Mac with Apple chip (M1/M2/M3/M4) | `ludex-macos-arm64` |
-| Mac with Intel chip | `ludex-macos-x86_64` |
+| Mac (Apple chip) | `ludex-macos-arm64` |
 | Linux (64-bit) | `ludex-linux-x86_64` |
 | Windows | *not supported yet* |
-
-*Not sure which Mac you have?* Click the Apple menu  ▸ **About This Mac**. If the "Chip" line says
-**Apple**, choose arm64; if it says **Intel**, choose x86_64.
 
 ### macOS
 
