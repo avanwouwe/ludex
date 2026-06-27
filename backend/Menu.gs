@@ -14,6 +14,7 @@ function onOpen() {
     .addItem("③ How to deploy the backend…", "ludexDeployHelp")
     .addItem("Show backend address…", "ludexShowBackendUrl")
     .addItem("Check setup", "ludexCheckSetup")
+    .addItem("Install standard activities", "ludexInstallStandardActivities")
     .addSeparator()
     .addItem("Refresh dashboard", "ludexRefreshDashboard")
     .addItem("Send a command…", "ludexSendCommand")

@@ -16,6 +16,7 @@ _UUID_RE = re.compile(r'"IOPlatformUUID"\s*=\s*"([^"]+)"')
 
 class DarwinPlatform(Platform):
     name = "darwin"
+    os_key = "mac"
 
     def __init__(self):
         self._pending = []  # detached osascript dialog processes, reaped lazily

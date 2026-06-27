@@ -7,6 +7,9 @@ import abc
 
 class Platform(abc.ABC):
     name: str = "base"
+    # Friendly key used in activity definitions' per-platform "platforms" map and reported to
+    # the backend as the user's OS: "linux" | "mac" | "windows".
+    os_key: str = "unknown"
 
     @abc.abstractmethod
     def machine_id(self) -> str:

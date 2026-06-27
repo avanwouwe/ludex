@@ -83,18 +83,20 @@ def list_active_candidates(cpu_interval: float = 1.0, min_cpu: float = 1.0) -> L
     return sorted(rows, key=lambda r: r["cpu"], reverse=True)
 
 
-def build_definition(activity_id: str, attrs: dict) -> dict:
-    """Draft a starter definition (dict) from a selected process's attributes."""
+def build_match_block(attrs: dict) -> dict:
+    """A single match block from a selected process's attributes."""
     if attrs["name"] in GENERIC_RUNTIMES:
-        block = {
+        return {
             "name_contains": attrs["name"],
             "cmdline_contains": ["<EDIT: distinctive token from cmdline>"],
         }
-    else:
-        block = {"name_contains": attrs["name"]}
+    return {"name_contains": attrs["name"]}
+
+
+def build_definition(activity_id: str, attrs: dict, os_key: str) -> dict:
+    """Draft a starter, platform-scoped definition from a selected process's attributes."""
     return {
-        "activity": activity_id,
-        "match_any": [block],
+        "platforms": {os_key: {"match_any": [build_match_block(attrs)]}},
         "min_cpu_percent": 5.0,
         "limits": {"daily_max_minutes": 120, "warn_before_minutes": 10},
     }

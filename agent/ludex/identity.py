@@ -36,7 +36,8 @@ def fetch_public_ip(timeout: float = 5.0) -> str:
 
 
 def resolve_identity(include_public_ip: bool = True) -> Identity:
-    machine_id = get_platform().machine_id()
+    platform = get_platform()
+    machine_id = platform.machine_id()
     login = getpass.getuser()
     host_id = _hash(machine_id)
     user_id = _hash(host_id, login)
@@ -46,4 +47,5 @@ def resolve_identity(include_public_ip: bool = True) -> Identity:
         hostname=socket.gethostname(),
         system_username=login,
         public_ip=fetch_public_ip() if include_public_ip else "",
+        os=platform.os_key,
     )

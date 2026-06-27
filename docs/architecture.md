@@ -110,7 +110,7 @@ it directly (the dashboard is built on these later).
   `sync_interval_s`, `warn_before_minutes`, …).
 
 - **`users`** — one row per `user_id`: `host_id`, `hostname`, `system_username`, `public_ip`,
-  `first_seen`, `last_seen`.
+  `os` (`linux`/`mac`/`windows`, derived by the agent), `first_seen`, `last_seen`.
 - **`activity_log`** — append-only history: `server_time`, `user_id`, `period_start`, `period_end`,
   `period_seconds`, `activity_id`, `activity_seconds`. One row per (period × active activity), or a
   period with no activity recorded as a single zero row.
@@ -118,7 +118,8 @@ it directly (the dashboard is built on these later).
     period already stored for that `user_id`. This makes the log idempotent under retries and keeps
     recovered state consistent.
 - **`activity_types`** — defined activities: `activity_id`, `definition` (free-format text holding
-  the match rules + limits — see activity-definitions.md), `enabled`.
+  the match rules + limits, optionally per-platform — see activity-definitions.md), `enabled`.
+  A starter set of common games can be seeded via **Ludex ▸ Install standard activities**.
 - **`commands`** — `command_id`, `user_id`, `command_type`, `params`, `status`
   (`pending` → `done`/`failed`), `created`, `executed`, `result`. The agent reads `pending`,
   executes, and writes back status.

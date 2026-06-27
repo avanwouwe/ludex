@@ -25,7 +25,7 @@ function DEVELOPMENT_MODE_() { return truthy_(prop_("DEVELOPMENT_MODE", "")); }
 
 var SHEETS = {
   config:         { name: "config",         headers: ["key", "value"] },
-  users:          { name: "users",          headers: ["user_id", "host_id", "hostname", "system_username", "public_ip", "first_seen", "last_seen"] },
+  users:          { name: "users",          headers: ["user_id", "host_id", "hostname", "system_username", "public_ip", "os", "first_seen", "last_seen"] },
   activity_log:   { name: "activity_log",   headers: ["server_time", "user_id", "period_start", "period_end", "period_seconds", "activity_id", "activity_seconds"] },
   activity_types: { name: "activity_types", headers: ["activity_id", "definition", "enabled"] },
   commands:       { name: "commands",       headers: ["command_id", "user_id", "command_type", "params", "status", "created", "executed", "result"] }
@@ -103,13 +103,13 @@ function UpdateUser_(p) {
   if (row) {
     t.update(row, {
       host_id: p.host_id, hostname: p.hostname || "", system_username: p.system_username || "",
-      public_ip: p.public_ip || "", last_seen: now
+      public_ip: p.public_ip || "", os: p.os || "", last_seen: now
     });
     return { created: false };
   }
   t.append({
     user_id: p.user_id, host_id: p.host_id, hostname: p.hostname || "",
-    system_username: p.system_username || "", public_ip: p.public_ip || "",
+    system_username: p.system_username || "", public_ip: p.public_ip || "", os: p.os || "",
     first_seen: now, last_seen: now
   });
   return { created: true };
@@ -338,7 +338,13 @@ function json_(obj) {
 
 // ===== One-time setup: create tabs + seed config defaults =====
 function setup() {
-  Object.keys(SHEETS).forEach(function (k) { table_(SHEETS[k]); });
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  Object.keys(SHEETS).forEach(function (k) {
+    var spec = SHEETS[k];
+    table_(spec);  // ensure the sheet exists
+    // repair/extend the header row to match the spec (adds new columns like `os` to old sheets)
+    ss.getSheetByName(spec.name).getRange(1, 1, 1, spec.headers.length).setValues([spec.headers]);
+  });
   var ct = table_(SHEETS.config);
   var existing = {};
   ct.rows().forEach(function (r) { existing[r.key] = true; });

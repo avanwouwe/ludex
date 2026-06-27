@@ -16,6 +16,7 @@ _SERVICE_NAME = "ludex.service"
 
 class LinuxPlatform(Platform):
     name = "linux"
+    os_key = "linux"
 
     def machine_id(self) -> str:
         for path in _MACHINE_ID_PATHS:

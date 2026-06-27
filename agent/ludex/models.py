@@ -85,3 +85,4 @@ class Identity:
     hostname: str
     system_username: str
     public_ip: str = ""
+    os: str = ""  # os_key: linux | mac | windows

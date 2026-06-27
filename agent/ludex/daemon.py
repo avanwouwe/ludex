@@ -29,14 +29,15 @@ def _local_midnight_utc_iso() -> str:
     return midnight.astimezone(timezone.utc).replace(microsecond=0).isoformat()
 
 
-def _parse_types(activity_types: List[dict]) -> Dict[str, ActivityType]:
+def _parse_types(activity_types: List[dict], os_key: str) -> Dict[str, ActivityType]:
     out: Dict[str, ActivityType] = {}
     for t in activity_types:
         aid = t.get("activity_id")
         if not aid:
             continue
         try:
-            out[aid] = parse_definition(aid, t.get("definition", ""), enabled=t.get("enabled", True))
+            out[aid] = parse_definition(aid, t.get("definition", ""),
+                                        enabled=t.get("enabled", True), os_key=os_key)
         except Exception as e:
             log.warning("skipping activity '%s': %s", aid, e)
     return out
@@ -82,7 +83,7 @@ class Daemon:
         cfg = self.client.call_one("GetConfig", {})
         if cfg.ok:
             self.gconfig = GlobalConfig.from_dict(cfg.data.get("config"))
-            self.activities = _parse_types(cfg.data.get("activity_types", []))
+            self.activities = _parse_types(cfg.data.get("activity_types", []), self.platform.os_key)
         else:
             log.error("GetConfig failed: %s", cfg.error)
         self._apply_overrides()
@@ -95,6 +96,7 @@ class Daemon:
             "hostname": self.identity.hostname,
             "system_username": self.identity.system_username,
             "public_ip": self.identity.public_ip,
+            "os": self.identity.os,
         })
 
         rec = self.client.call_one("GetActivityLog", {
@@ -181,7 +183,7 @@ class Daemon:
         cfg = results.get("cfg")
         if cfg and cfg.ok:
             self.gconfig = GlobalConfig.from_dict(cfg.data.get("config"))
-            self.activities = _parse_types(cfg.data.get("activity_types", []))
+            self.activities = _parse_types(cfg.data.get("activity_types", []), self.platform.os_key)
             self._apply_overrides()
         self._reload_requested = False
 

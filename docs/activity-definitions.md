@@ -39,6 +39,31 @@ limits:                          # optional; drives warnings only
 Restricted to the cross-platform attributes `psutil` reliably provides: `name`, `exe`, `cmdline`.
 `*_equals` / `*_regex` can be added later; `_contains` covers most cases.
 
+### Per-platform rules
+
+The same activity often runs as a differently-named process per OS. Wrap the match rules in a
+`platforms` map keyed by **os_key** (`linux` / `mac` / `windows`); the agent selects its own
+platform's block. `limits` and `min_cpu_percent` stay at the top level and are **shared** across
+platforms (a daily cap on "minecraft" applies on any OS); a platform block may override
+`min_cpu_percent`.
+
+```yaml
+activity: minecraft
+platforms:
+  linux:   { match_any: [ { name_contains: java,  cmdline_contains: [net.minecraft] } ] }
+  mac:     { match_any: [ { name_contains: java,  cmdline_contains: [net.minecraft] } ] }
+  windows: { match_any: [ { name_contains: javaw, cmdline_contains: [net.minecraft] } ] }
+min_cpu_percent: 5
+limits: { daily_max_minutes: 120 }
+```
+
+- A **flat top-level `match_any`** (no `platforms`) applies to **every** platform — fine when a
+  brand substring matches on all OSes (matching is lowercased, so `name_contains: roblox` hits
+  `RobloxPlayer` and `RobloxPlayerBeta.exe`).
+- If a definition declares `platforms` but **not** the agent's, the activity simply never matches
+  on that computer.
+- `os_key` is reported per computer in the `users` tab (the agent derives it locally).
+
 ## B. Detection
 
 "Is the user *using* this activity" = a process **matches** the definition **and** its
