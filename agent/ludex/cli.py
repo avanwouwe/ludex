@@ -33,29 +33,21 @@ def cmd_run(args):
 
 
 def cmd_install(args):
-    from .config import normalize_backend_url
-    from .platform import get_platform
-    from .transport import BackendClient, BackendError
-    raw = args.url or input("Backend ID: ").strip()
-    url = normalize_backend_url(raw)
+    from .installer import validate_and_install
+    from .transport import BackendError
+    url = (args.url or input("Backend URL (ends in /exec): ")).strip()
     token = args.token or getpass.getpass("Shared key: ").strip()
-    if not url or not token:
-        sys.exit("both backend ID and shared key are required")
-
-    # Validate before registering anything — a bad URL/key should fail here, not silently
-    # later inside a background service.
     print("Validating backend connection...")
     try:
-        res = BackendClient(url, token).call_one("GetConfig", {})
-    except BackendError as e:
-        sys.exit(f"could not reach backend: {e}")
-    if not res.ok:
-        sys.exit(f"backend rejected credentials: {res.error}")
-    n = len(res.data.get("activity_types", []))
-    print(f"  OK — backend reachable ({n} activit{'y' if n == 1 else 'ies'} defined)")
+        print(validate_and_install(url, token))
+        print("Installed. The agent is now running and will start on login.")
+    except (ValueError, BackendError) as e:
+        sys.exit(str(e))
 
-    print(get_platform().install_service(url, token))
-    print("Installed. The agent is now running and will start on login.")
+
+def cmd_gui(args):
+    from .gui import run_installer
+    run_installer()
 
 
 def cmd_uninstall(args):
@@ -150,6 +142,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--token", help="shared key (overrides LUDEX_TOKEN)")
 
     sub = p.add_subparsers(dest="command", required=True)
+    sub.add_parser("gui", help="open the graphical installer").set_defaults(func=cmd_gui)
     run = sub.add_parser("run", help="run the agent loop")
     run.add_argument("--sample-interval", type=int, dest="sample_interval",
                      help="override sample interval (s) — for testing")
@@ -168,6 +161,12 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv=None):
+    argv = sys.argv[1:] if argv is None else list(argv)
+    if not argv:
+        # launched with no arguments (e.g. double-clicked) -> graphical installer
+        from .gui import run_installer
+        run_installer()
+        return
     args = build_parser().parse_args(argv)
     _setup_logging(args.verbose)
     args.func(args)

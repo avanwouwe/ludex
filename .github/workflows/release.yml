@@ -45,10 +45,17 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e '.[build]'
           bash packaging/build.sh
-      - name: Upload binary to the release
+      - name: Package and upload to the release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
         run: |
-          cp agent/dist/ludex "ludex-${{ matrix.label }}"
-          gh release upload "${GITHUB_REF_NAME}" "ludex-${{ matrix.label }}" --clobber
+          # Ship inside an archive so the executable bit survives download (a raw binary loses it).
+          if [ "${{ runner.os }}" = "macOS" ]; then
+            ASSET="ludex-${{ matrix.label }}.zip"
+            (cd agent/dist && zip -q "../../$ASSET" ludex)
+          else
+            ASSET="ludex-${{ matrix.label }}.tar.gz"
+            tar -czf "$ASSET" -C agent/dist ludex
+          fi
+          gh release upload "${GITHUB_REF_NAME}" "$ASSET" --clobber

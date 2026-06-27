@@ -68,6 +68,7 @@ python3 -m venv .venv && .venv/bin/pip install -e '.[build]'
 ./dist/ludex install
 
 # Other commands
+./dist/ludex                    # no args (or double-click): browser-based install UI
 ./dist/ludex detect-app         # turn a running process into an activity definition
 ./dist/ludex uninstall          # stop and remove the service
 ```

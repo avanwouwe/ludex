@@ -12,7 +12,6 @@ function onOpen() {
     .addItem("① Set credentials…", "ludexSetCredentials")
     .addItem("② Create / repair sheets", "ludexSetup")
     .addItem("③ How to deploy the backend…", "ludexDeployHelp")
-    .addItem("Show backend address…", "ludexShowBackendUrl")
     .addItem("Check setup", "ludexCheckSetup")
     .addItem("Install standard activities", "ludexInstallStandardActivities")
     .addItem("Edit activity limits…", "ludexLimits")
@@ -73,39 +72,11 @@ function ludexDeployHelp() {
     + "3. Execute as:  Me\n"
     + "4. Who has access:  Anyone\n"
     + "5. Click Deploy and authorize\n\n"
-    + "Then use Ludex ▸ Show backend address to get the Backend ID for each computer's "
-    + "`ludex install`.\n\n"
+    + "Copy the Web app URL it shows (it ends in /exec). Give that URL and your shared key to "
+    + "each computer when you install Ludex there.\n\n"
     + "If you change the code later, repeat with Deploy ▸ Manage deployments ▸ "
     + "edit ▸ New version (this keeps the same URL).",
     SpreadsheetApp.getUi().ButtonSet.OK);
-}
-
-// Show the deployed backend ID + /exec URL with copy buttons. We rebuild the /exec URL from the
-// deployment ID so it's always the production form (never the /dev test URL getUrl() can return).
-function ludexShowBackendUrl() {
-  var ui = SpreadsheetApp.getUi();
-  var raw = "";
-  try { raw = ScriptApp.getService().getUrl() || ""; } catch (e) {}
-  var m = raw.match(/\/s\/([^\/]+)\//);
-  if (!m) {
-    ui.alert("Not deployed yet",
-      "Deploy the backend first (Ludex ▸ ③ How to deploy), then try again.", ui.ButtonSet.OK);
-    return;
-  }
-  var id = m[1];
-  var html = '<!DOCTYPE html><html><head><base target="_top"><style>'
-    + 'body{font-family:Arial,sans-serif;font-size:13px;margin:16px}'
-    + 'label{font-weight:bold;display:block;margin-top:12px}'
-    + 'input{width:100%;box-sizing:border-box;padding:6px;font-family:monospace}'
-    + 'button{margin-top:6px;padding:6px 12px}.muted{color:#666}</style></head><body>'
-    + '<div class="muted">Give this <b>Backend ID</b> to each computer when you run '
-    + '<code>ludex install</code>.</div>'
-    + '<label>Backend ID</label><input id="id" readonly value="' + id + '">'
-    + '<button onclick="cp(\'id\')">Copy ID</button> <span id="s" class="muted"></span>'
-    + '<script>function cp(k){var e=document.getElementById(k);e.select();'
-    + 'navigator.clipboard.writeText(e.value).then(function(){document.getElementById("s").textContent="copied!";});}<\/script>'
-    + '</body></html>';
-  ui.showModalDialog(HtmlService.createHtmlOutput(html).setWidth(540).setHeight(220), "Ludex Backend ID");
 }
 
 // In-process setup check (no external request scope needed).

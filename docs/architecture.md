@@ -180,9 +180,13 @@ install are per-OS.
 
 - The agent is **Python**, distributed as a **single compiled binary** (PyInstaller) so endpoints
   need no Python runtime.
-- The binary is its **own installer**: `ludex install` prompts only for the **shared key** (and
-  backend URL) and registers a **systemd user service** so it runs as the user and survives
-  logout/reboot per the desktop session. The key/URL are supplied to the service as **read-only
+- The binary is its **own installer**: `ludex install` (CLI) or — when launched with **no arguments
+  (e.g. double-clicked)** — a **browser-based installer** (`gui.py` serves a local form on
+  127.0.0.1, stdlib only, no GUI toolkit) prompts for the **backend URL + shared key**, validates,
+  and registers a **systemd user service** (Linux) / **LaunchAgent** (macOS) so it runs as the user
+  and survives logout/reboot per the desktop session.
+- Binaries are shipped inside an archive (`.zip` on macOS, `.tar.gz` on Linux) so the executable
+  bit survives download. The key/URL are supplied to the service as **read-only
   config** (e.g. the systemd unit `Environment=`); the install step is the *only* moment anything is
   written, and the running agent never writes — see the "persists nothing to disk" rule in §1.
 - `ludex --detect-app` is the interactive helper that turns a live process into an activity

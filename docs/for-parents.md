@@ -20,9 +20,9 @@ Everything Ludex records lives in **your own Google Sheet**. No one else can see
    - an **admin password** — used when you add new activities or clean up data.
    
    Write both down somewhere safe.
-4. Click **Ludex ▸ ③ How to deploy the backend** and follow the five steps it shows. Then click
-   **Ludex ▸ Show backend address** and copy your **Backend ID** (a short code) — that, plus your
-   shared key, is what each computer needs.
+4. Click **Ludex ▸ ③ How to deploy the backend** and follow the five steps it shows. At the end,
+   **copy the Web app URL** (it ends in `/exec`) — that URL, plus your shared key, is what each
+   computer needs.
 
 That's the database done. The **Ludex** menu is also where you'll manage things day to day (see
 Part 3).
@@ -32,7 +32,8 @@ Part 3).
 ## Part 2 — The agent (on each child's computer)
 
 The agent is a small app that runs quietly as your child's normal user account (it needs no
-administrator rights). You'll need your **Backend ID** and your **shared key** from Part 1.
+administrator rights). You'll need your **Backend URL** (the one ending in `/exec`) and your
+**shared key** from Part 1. Installing opens a simple form in your web browser.
 
 **Download it** from the releases page — pick the file for that computer:
 
@@ -40,43 +41,38 @@ administrator rights). You'll need your **Backend ID** and your **shared key** f
 
 | Computer | File to download |
 |----------|------------------|
-| Mac (Apple chip) | `ludex-macos-arm64` |
-| Linux (64-bit) | `ludex-linux-x86_64` |
+| Mac (Apple chip) | `ludex-macos-arm64.zip` |
+| Linux (64-bit) | `ludex-linux-x86_64.tar.gz` |
 | Windows | *not supported yet* |
+
+> Tip: after unpacking, move the `ludex` file somewhere it can stay (e.g. your Applications or home
+> folder). The background service points at wherever it was when you installed — if you move or
+> delete it later, just run the installer again.
 
 ### macOS
 
-Open the **Terminal** app (Applications ▸ Utilities ▸ Terminal) and run, one line at a time:
+1. Double-click the downloaded `.zip` to unpack it — you get a file called `ludex`.
+2. **Right-click (or Control-click) `ludex` ▸ Open**, then click **Open** in the warning box. (macOS
+   warns because the app isn't from the App Store; this is expected. You only do this once.)
+3. A Terminal window opens and the **installer appears in your web browser**. Paste your Backend URL
+   and shared key, then click **Install**.
 
-```bash
-cd ~/Downloads
-xattr -dr com.apple.quarantine ludex-macos-*   # clears the "downloaded from internet" flag
-chmod +x ludex-macos-*                          # make it runnable
-mv ludex-macos-* ludex                          # tidy name
-./ludex install                                 # asks for the Backend ID + shared key
-```
-
-The first time a warning pops up, macOS may ask you to allow notifications/alerts for it — say yes,
-so your child actually sees the warnings.
+When the first warning pops up later, macOS may ask you to allow notifications — say yes, so your
+child actually sees them.
 
 ### Linux
 
-Open a terminal and run:
-
-```bash
-cd ~/Downloads
-chmod +x ludex-linux-x86_64
-mv ludex-linux-x86_64 ludex
-./ludex install            # asks for the Backend ID + shared key
-```
+1. Extract the `.tar.gz` (double-click, or `tar xzf ludex-linux-x86_64.tar.gz`).
+2. Run it: `./ludex` (from a terminal, or "Run" from your file manager). The **installer opens in
+   your browser** — enter your Backend URL and shared key and click **Install**.
 
 For the on-screen warnings to appear, the computer needs the standard notification helper. On
 Debian/Ubuntu: `sudo apt install libnotify-bin`. (Most desktops already have it.)
 
 ### Afterwards
 
-- **Change the shared key later:** run `./ludex install` again with the new key.
-- **Remove Ludex from a computer:** run `./ludex uninstall`.
+- **Change the shared key or URL:** run the installer again (open `ludex`, or `./ludex install`).
+- **Remove Ludex from a computer:** `./ludex uninstall` in a terminal.
 
 ---
 
