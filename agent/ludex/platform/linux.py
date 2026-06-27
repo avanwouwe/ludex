@@ -12,6 +12,7 @@ from .base import Platform
 
 _MACHINE_ID_PATHS = ("/etc/machine-id", "/var/lib/dbus/machine-id")
 _SERVICE_NAME = "ludex.service"
+_INSTALL_PATH = Path.home() / ".local" / "bin" / "ludex"
 
 
 class LinuxPlatform(Platform):
@@ -51,10 +52,22 @@ class LinuxPlatform(Platform):
             last_err = (proc.stderr or proc.stdout or "").strip()
         raise RuntimeError(f"shutdown failed (no privilege?): {last_err or 'no usable command found'}")
 
-    def _exec_command(self) -> str:
+    def _install_binary(self) -> Path:
+        """Copy the frozen binary to a stable location; return the path to use in the service."""
+        if not getattr(sys, "frozen", False):
+            return Path(sys.executable)  # dev mode — don't copy
+        src = Path(sys.executable).resolve()
+        target = _INSTALL_PATH
+        if src != target.resolve() if target.exists() else src != target:
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(src, target)
+            target.chmod(target.stat().st_mode | 0o755)
+        return target
+
+    def _exec_command(self, binary: Path) -> str:
         """How to invoke the agent's run loop, for the systemd unit ExecStart."""
-        if getattr(sys, "frozen", False):  # PyInstaller binary
-            return f"{sys.executable} run"
+        if getattr(sys, "frozen", False):
+            return f"{binary} run"
         return f"{sys.executable} -m ludex run"
 
     def _unit_path(self) -> Path:
@@ -62,6 +75,7 @@ class LinuxPlatform(Platform):
         return base / "systemd" / "user" / _SERVICE_NAME
 
     def install_service(self, backend_url: str, token: str) -> str:
+        binary = self._install_binary()
         unit = self._unit_path()
         unit.parent.mkdir(parents=True, exist_ok=True)
         unit.write_text(
@@ -72,7 +86,7 @@ class LinuxPlatform(Platform):
             "Type=simple\n"
             f'Environment="LUDEX_BACKEND_URL={backend_url}"\n'
             f'Environment="LUDEX_TOKEN={token}"\n'
-            f"ExecStart={self._exec_command()}\n"
+            f"ExecStart={self._exec_command(binary)}\n"
             "Restart=on-failure\n"
             "RestartSec=10\n\n"
             "[Install]\n"
@@ -85,7 +99,7 @@ class LinuxPlatform(Platform):
         subprocess.run(["systemctl", "--user", "restart", _SERVICE_NAME], check=False)
         # Optional: keep running after logout. Needs privileges; ignore failure.
         subprocess.run(["loginctl", "enable-linger", os.environ.get("USER", "")], check=False)
-        return f"installed systemd user service at {unit}"
+        return f"installed binary at {binary}, systemd user service at {unit}"
 
     def uninstall_service(self) -> str:
         subprocess.run(["systemctl", "--user", "disable", "--now", _SERVICE_NAME], check=False)

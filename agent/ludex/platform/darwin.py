@@ -4,9 +4,12 @@ from __future__ import annotations
 
 import plistlib
 import re
+import shutil
 import subprocess
 import sys
 from pathlib import Path
+
+_INSTALL_PATH = Path.home() / ".local" / "bin" / "ludex"
 
 from .base import Platform
 
@@ -68,20 +71,33 @@ class DarwinPlatform(Platform):
             return "shutdown requested via System Events"
         raise RuntimeError(f"shutdown failed: {(proc.stderr or proc.stdout).strip()}")
 
-    def _program_args(self) -> list:
-        if getattr(sys, "frozen", False):  # PyInstaller binary
-            return [sys.executable, "run"]
+    def _install_binary(self) -> Path:
+        """Copy the frozen binary to a stable location; return the path to use in the service."""
+        if not getattr(sys, "frozen", False):
+            return Path(sys.executable)  # dev mode — don't copy
+        src = Path(sys.executable).resolve()
+        target = _INSTALL_PATH
+        if src != target.resolve() if target.exists() else src != target:
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(src, target)
+            target.chmod(target.stat().st_mode | 0o755)
+        return target
+
+    def _program_args(self, binary: Path) -> list:
+        if getattr(sys, "frozen", False):
+            return [str(binary), "run"]
         return [sys.executable, "-m", "ludex", "run"]
 
     def _plist_path(self) -> Path:
         return Path.home() / "Library" / "LaunchAgents" / f"{_LABEL}.plist"
 
     def install_service(self, backend_url: str, token: str) -> str:
+        binary = self._install_binary()
         path = self._plist_path()
         path.parent.mkdir(parents=True, exist_ok=True)
         plist = {
             "Label": _LABEL,
-            "ProgramArguments": self._program_args(),
+            "ProgramArguments": self._program_args(binary),
             "EnvironmentVariables": {
                 "LUDEX_BACKEND_URL": backend_url,
                 "LUDEX_TOKEN": token,
@@ -96,7 +112,7 @@ class DarwinPlatform(Platform):
         subprocess.run(["launchctl", "unload", str(path)], check=False,
                        capture_output=True)
         subprocess.run(["launchctl", "load", "-w", str(path)], check=False)
-        return f"installed LaunchAgent at {path}"
+        return f"installed binary at {binary}, LaunchAgent at {path}"
 
     def uninstall_service(self) -> str:
         path = self._plist_path()

@@ -49,7 +49,7 @@
     </p>
     <p>
       Ludex ships with a library of common games and apps. To see them, click
-      <strong>Ludex → Advanced → Install standard activities</strong> in your dashboard.
+      <strong>Ludex → Edit activity limits</strong> in your dashboard.
     </p>
 
     <h3>Finding an app's process name</h3>
@@ -108,7 +108,7 @@
       When a child reaches the warning threshold, a notification appears on their
       screen. When they hit the daily limit, another notification fires.
       The agent does <strong>not</strong> enforce limits automatically —
-      enforcement is a manual decision you make as a parent.
+      enforcement is up to you, the parent.
     </p>
     <div class="callout info">
       <span class="callout-icon">ℹ️</span>
@@ -123,15 +123,14 @@
     </p>
     <ul>
       <li><strong>Stop activity</strong> — kills a specific running app by name</li>
-      <li><strong>Shutdown</strong> — shuts down the computer (requires the OS to allow it for the user)</li>
+      <li><strong>Shutdown</strong> — shuts down the computer</li>
     </ul>
     <p>
-      Commands are queued and picked up on the agent's next sync cycle (within a few minutes).
+      Commands are queued and picked up periodically by the agent (within a few minutes).
       The dashboard shows whether the command was executed or failed.
     </p>
     <div class="callout warn">
       <span class="callout-icon">⚠️</span>
-      <span>The agent only kills processes owned by the logged-in user. It cannot force-quit system processes or apps running as another user.</span>
     </div>
 
     <!-- Names -->
@@ -145,17 +144,6 @@
       <li>Edit the <code>name</code> column next to the user you want to rename</li>
       <li>Optionally add an <code>email</code> address to receive limit-exceeded alerts for that user</li>
     </ol>
-
-    <!-- Updating -->
-    <h2 id="updating">Updating the dashboard script</h2>
-    <p>When a new version of Ludex is released:</p>
-    <ol>
-      <li>Replace the script files in Apps Script with the new versions</li>
-      <li>In the script editor, click <strong>Deploy → Manage deployments</strong></li>
-      <li>Click the edit (pencil) icon → set version to <strong>New version</strong> → Deploy</li>
-    </ol>
-    <p class="note">The URL stays the same — you don't need to update the agent.</p>
-    <p>To update the agent on a child's computer, download the new binary from the releases page and run it. It will replace the existing installation.</p>
 
     <!-- Uninstall -->
     <h2 id="uninstall">Uninstalling</h2>

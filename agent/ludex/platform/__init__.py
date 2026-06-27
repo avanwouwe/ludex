@@ -17,5 +17,6 @@ def get_platform() -> Platform:
         from .darwin import DarwinPlatform
         return DarwinPlatform()
     if sys.platform.startswith("win"):
-        raise NotImplementedError("Windows support is not implemented yet")
+        from .windows import WindowsPlatform
+        return WindowsPlatform()
     raise NotImplementedError(f"unsupported platform: {sys.platform}")
