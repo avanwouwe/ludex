@@ -12,9 +12,16 @@ import argparse
 import getpass
 import json
 import logging
+import re
 import sys
 
 from . import __version__
+
+
+def _slugify(name: str) -> str:
+    """Turn a display name ('League of Legends') into an id slug ('league-of-legends')."""
+    slug = re.sub(r"[^a-z0-9]+", "-", (name or "").strip().lower()).strip("-")
+    return slug or "activity"
 
 
 def _setup_logging(verbose: bool):
@@ -78,9 +85,10 @@ def cmd_detect_app(args):
         sys.exit("invalid selection")
     chosen = rows[int(sel)]
 
-    activity_id = args.name or input("Activity id (e.g. minecraft): ").strip()
-    if not activity_id:
-        sys.exit("activity id is required")
+    name = args.name or input("Activity name (e.g. League of Legends): ").strip()
+    if not name:
+        sys.exit("activity name is required")
+    activity_id = _slugify(name)
 
     config = AgentConfig.load(url=args.url, token=args.token)
     client = BackendClient(config.backend_url, config.token)
@@ -107,7 +115,7 @@ def cmd_detect_app(args):
         definition.pop("match_any", None)  # any legacy flat rule is now superseded by platforms
         definition.setdefault("min_cpu_percent", 5.0)
         definition.setdefault("limits", {"daily_max_minutes": 120, "warn_before_minutes": 10})
-        print(f"\nMerging '{os_key}' rules into existing activity '{activity_id}'.")
+        print(f"\nMerging '{os_key}' rules into existing activity '{name}'.")
     else:
         definition = build_definition(activity_id, chosen, os_key)
 
@@ -125,11 +133,12 @@ def cmd_detect_app(args):
     res = client.call_one("PutActivityType", {
         "admin_password": admin,
         "activity_id": activity_id,
+        "name": name,
         "definition": text,
         "enabled": True,
     })
     if res.ok:
-        print(f"OK: activity '{activity_id}' {'created' if res.data.get('created') else 'updated'}")
+        print(f"OK: activity '{name}' {'created' if res.data.get('created') else 'updated'}")
     else:
         sys.exit(f"backend rejected: {res.error}")
 
@@ -154,7 +163,7 @@ def build_parser() -> argparse.ArgumentParser:
     sub.add_parser("uninstall", help="remove the service").set_defaults(func=cmd_uninstall)
 
     d = sub.add_parser("detect-app", help="build an activity definition from a live process")
-    d.add_argument("--name", help="activity id to assign")
+    d.add_argument("--name", help="activity display name (the id is derived from it)")
     d.add_argument("--min-cpu", type=float, default=1.0, help="minimum CPU%% to list (default 1.0)")
     d.set_defaults(func=cmd_detect_app)
     return p

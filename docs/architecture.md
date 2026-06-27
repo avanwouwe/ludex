@@ -117,8 +117,9 @@ it directly (the dashboard is built on these later).
   - **Overlap rule:** `PutActivityLog` is rejected if its `[period_start, period_end)` overlaps a
     period already stored for that `user_id`. This makes the log idempotent under retries and keeps
     recovered state consistent.
-- **`activity_types`** — defined activities: `activity_id`, `definition` (free-format text holding
-  the match rules + limits, optionally per-platform — see activity-definitions.md), `enabled`.
+- **`activity_types`** — defined activities: `activity_id` (slug key), `name` (display name shown in
+  the dashboard/dialogs), `definition` (free-format text holding the match rules + limits, optionally
+  per-platform — see activity-definitions.md), `enabled`.
   A starter set of common games can be seeded via **Ludex ▸ Install standard activities**.
 - **`commands`** — `command_id`, `user_id`, `command_type`, `params`, `status`
   (`pending` → `done`/`failed`), `created`, `executed`, `result`. The agent reads `pending`,

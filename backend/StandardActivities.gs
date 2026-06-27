@@ -12,7 +12,7 @@
 
 var STANDARD_ACTIVITIES = [
   {
-    activity_id: "minecraft",
+    activity_id: "minecraft", name: "Minecraft",
     definition: {
       platforms: {
         linux:   { match_any: [{ name_contains: "java",  cmdline_contains: ["net.minecraft"] }, { name_contains: "minecraft" }] },
@@ -23,76 +23,34 @@ var STANDARD_ACTIVITIES = [
       limits: { daily_max_minutes: 120, pause_after_minutes: 45, pause_duration_minutes: 10, warn_before_minutes: 10 }
     }
   },
-  {
-    activity_id: "roblox",
-    definition: { match_any: [{ name_contains: "roblox" }], min_cpu_percent: 3,
-                  limits: { daily_max_minutes: 90, warn_before_minutes: 10 } }
-  },
-  {
-    activity_id: "fortnite",
-    definition: { match_any: [{ name_contains: "fortnite" }], min_cpu_percent: 5,
-                  limits: { daily_max_minutes: 90, warn_before_minutes: 10 } }
-  },
-  {
-    activity_id: "steam-games",
-    definition: { match_any: [{ name_contains: "steam" }], min_cpu_percent: 5,
-                  limits: { daily_max_minutes: 120, warn_before_minutes: 10 } }
-  },
-  {
-    activity_id: "discord",
-    definition: { match_any: [{ name_contains: "discord" }], min_cpu_percent: 1,
-                  limits: { daily_max_minutes: 120, warn_before_minutes: 15 } }
-  },
-  {
-    activity_id: "league-of-legends",
-    definition: { match_any: [{ name_contains: "league of legends" }, { name_contains: "leagueclient" }],
-                  min_cpu_percent: 5, limits: { daily_max_minutes: 90, warn_before_minutes: 10 } }
-  },
-  {
-    activity_id: "valorant",
-    definition: { match_any: [{ name_contains: "valorant" }], min_cpu_percent: 5,
-                  limits: { daily_max_minutes: 90, warn_before_minutes: 10 } }
-  },
-  {
-    activity_id: "rocket-league",
-    definition: { match_any: [{ name_contains: "rocketleague" }], min_cpu_percent: 5,
-                  limits: { daily_max_minutes: 90, warn_before_minutes: 10 } }
-  },
-  {
-    activity_id: "genshin-impact",
-    definition: { match_any: [{ name_contains: "genshin" }], min_cpu_percent: 5,
-                  limits: { daily_max_minutes: 90, warn_before_minutes: 10 } }
-  },
-  {
-    activity_id: "gta-v",
-    definition: { match_any: [{ name_contains: "gta5" }, { name_contains: "gtav" }], min_cpu_percent: 5,
-                  limits: { daily_max_minutes: 90, warn_before_minutes: 10 } }
-  },
-  {
-    activity_id: "among-us",
-    definition: { match_any: [{ name_contains: "among us" }], min_cpu_percent: 3,
-                  limits: { daily_max_minutes: 90, warn_before_minutes: 10 } }
-  },
-  {
-    activity_id: "terraria",
-    definition: { match_any: [{ name_contains: "terraria" }], min_cpu_percent: 3,
-                  limits: { daily_max_minutes: 90, warn_before_minutes: 10 } }
-  },
-  {
-    activity_id: "epic-games-launcher",
-    definition: { match_any: [{ name_contains: "epicgames" }], min_cpu_percent: 3,
-                  limits: { daily_max_minutes: 120, warn_before_minutes: 10 } }
-  },
-  {
-    activity_id: "spotify",
-    definition: { match_any: [{ name_contains: "spotify" }], min_cpu_percent: 1,
-                  limits: { daily_max_minutes: 180, warn_before_minutes: 15 } }
-  },
-  {
-    activity_id: "zoom",
-    definition: { match_any: [{ name_contains: "zoom" }], min_cpu_percent: 1,
-                  limits: { daily_max_minutes: 240, warn_before_minutes: 15 } }
-  }
+  { activity_id: "roblox", name: "Roblox",
+    definition: { match_any: [{ name_contains: "roblox" }], min_cpu_percent: 3, limits: { daily_max_minutes: 90, warn_before_minutes: 10 } } },
+  { activity_id: "fortnite", name: "Fortnite",
+    definition: { match_any: [{ name_contains: "fortnite" }], min_cpu_percent: 5, limits: { daily_max_minutes: 90, warn_before_minutes: 10 } } },
+  { activity_id: "steam-games", name: "Steam games",
+    definition: { match_any: [{ name_contains: "steam" }], min_cpu_percent: 5, limits: { daily_max_minutes: 120, warn_before_minutes: 10 } } },
+  { activity_id: "discord", name: "Discord",
+    definition: { match_any: [{ name_contains: "discord" }], min_cpu_percent: 1, limits: { daily_max_minutes: 120, warn_before_minutes: 15 } } },
+  { activity_id: "league-of-legends", name: "League of Legends",
+    definition: { match_any: [{ name_contains: "league of legends" }, { name_contains: "leagueclient" }], min_cpu_percent: 5, limits: { daily_max_minutes: 90, warn_before_minutes: 10 } } },
+  { activity_id: "valorant", name: "Valorant",
+    definition: { match_any: [{ name_contains: "valorant" }], min_cpu_percent: 5, limits: { daily_max_minutes: 90, warn_before_minutes: 10 } } },
+  { activity_id: "rocket-league", name: "Rocket League",
+    definition: { match_any: [{ name_contains: "rocketleague" }], min_cpu_percent: 5, limits: { daily_max_minutes: 90, warn_before_minutes: 10 } } },
+  { activity_id: "genshin-impact", name: "Genshin Impact",
+    definition: { match_any: [{ name_contains: "genshin" }], min_cpu_percent: 5, limits: { daily_max_minutes: 90, warn_before_minutes: 10 } } },
+  { activity_id: "gta-v", name: "GTA V",
+    definition: { match_any: [{ name_contains: "gta5" }, { name_contains: "gtav" }], min_cpu_percent: 5, limits: { daily_max_minutes: 90, warn_before_minutes: 10 } } },
+  { activity_id: "among-us", name: "Among Us",
+    definition: { match_any: [{ name_contains: "among us" }], min_cpu_percent: 3, limits: { daily_max_minutes: 90, warn_before_minutes: 10 } } },
+  { activity_id: "terraria", name: "Terraria",
+    definition: { match_any: [{ name_contains: "terraria" }], min_cpu_percent: 3, limits: { daily_max_minutes: 90, warn_before_minutes: 10 } } },
+  { activity_id: "epic-games-launcher", name: "Epic Games Launcher",
+    definition: { match_any: [{ name_contains: "epicgames" }], min_cpu_percent: 3, limits: { daily_max_minutes: 120, warn_before_minutes: 10 } } },
+  { activity_id: "spotify", name: "Spotify",
+    definition: { match_any: [{ name_contains: "spotify" }], min_cpu_percent: 1, limits: { daily_max_minutes: 180, warn_before_minutes: 15 } } },
+  { activity_id: "zoom", name: "Zoom",
+    definition: { match_any: [{ name_contains: "zoom" }], min_cpu_percent: 1, limits: { daily_max_minutes: 240, warn_before_minutes: 15 } } }
 ];
 
 function ludexInstallStandardActivities() {
@@ -104,7 +62,7 @@ function ludexInstallStandardActivities() {
   var added = 0, skipped = 0;
   STANDARD_ACTIVITIES.forEach(function (a) {
     if (have[a.activity_id]) { skipped++; return; }
-    t.append({ activity_id: a.activity_id, definition: JSON.stringify(a.definition), enabled: true });
+    t.append({ activity_id: a.activity_id, name: a.name || "", definition: JSON.stringify(a.definition), enabled: true });
     added++;
   });
 

@@ -93,7 +93,7 @@ stored for that `user_id`. Overlap detection makes retries safe.
 
 ### `PutActivityType` — **admin**: add/replace an activity (used by `--detect-app`)
 ```json
-{ "admin_password": "...", "activity_id": "minecraft",
+{ "admin_password": "...", "activity_id": "minecraft", "name": "Minecraft",
   "definition": "<json/yaml>", "enabled": true }
 ```
 → `data: { "created": true|false }`. Rejected if `admin_password` is wrong.

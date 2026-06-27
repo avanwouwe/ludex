@@ -5,40 +5,35 @@
     <style>
       body { font-family: Arial, sans-serif; font-size: 13px; margin: 16px; }
       label { display: block; font-weight: bold; margin: 12px 0 4px; }
-      input[type=text], input[type=password] { width: 100%; box-sizing: border-box; padding: 7px; }
+      input { width: 100%; box-sizing: border-box; padding: 7px; }
       .muted { color: #666; }
-      .row { margin-top: 8px; }
       button { margin-top: 16px; padding: 8px 16px; }
       #status { margin-left: 10px; }
     </style>
   </head>
   <body>
     <div class="muted">
-      Stored privately in this Sheet (Script Properties). Re-enter both to change them later.
+      Stored privately in this Sheet. Click a field to select it, then type to replace.
     </div>
 
     <label>Shared key <span class="muted">— every computer's agent uses this</span></label>
-    <input type="password" id="token" autocomplete="off" autofocus>
+    <input type="text" id="token" autocomplete="off" onfocus="this.select()">
 
     <label>Admin password <span class="muted">— to add activities / clean up data</span></label>
-    <input type="password" id="admin" autocomplete="off">
-
-    <div class="row muted">
-      <label style="display:inline;font-weight:normal">
-        <input type="checkbox" id="show" onclick="toggle()"> Show characters
-      </label>
-    </div>
+    <input type="password" id="admin" autocomplete="off" onfocus="this.select()">
 
     <button id="save" onclick="save()">Save</button>
     <span id="status" class="muted"></span>
 
     <script>
-      function toggle() {
-        var t = document.getElementById('show').checked ? 'text' : 'password';
-        document.getElementById('token').type = t;
-        document.getElementById('admin').type = t;
-      }
       function status(m) { document.getElementById('status').textContent = m; }
+
+      // Prefill with the current values.
+      google.script.run.withSuccessHandler(function (c) {
+        document.getElementById('token').value = c.token || '';
+        document.getElementById('admin').value = c.admin || '';
+      }).getCredentials();
+
       function save() {
         var token = document.getElementById('token').value.trim();
         var admin = document.getElementById('admin').value.trim();

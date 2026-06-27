@@ -27,7 +27,7 @@ var SHEETS = {
   config:         { name: "config",         headers: ["key", "value"] },
   users:          { name: "users",          headers: ["user_id", "host_id", "hostname", "system_username", "public_ip", "os", "first_seen", "last_seen"] },
   activity_log:   { name: "activity_log",   headers: ["server_time", "user_id", "period_start", "period_end", "period_seconds", "activity_id", "activity_seconds"] },
-  activity_types: { name: "activity_types", headers: ["activity_id", "definition", "enabled"] },
+  activity_types: { name: "activity_types", headers: ["activity_id", "definition", "enabled", "name"] },
   commands:       { name: "commands",       headers: ["command_id", "user_id", "command_type", "params", "status", "created", "executed", "result"] }
 };
 
@@ -127,7 +127,7 @@ function GetConfig_(p) {
   var types = table_(SHEETS.activity_types).rows()
     .filter(function (r) { return r.activity_id; })
     .map(function (r) {
-      return { activity_id: r.activity_id, definition: r.definition || "", enabled: truthy_(r.enabled) };
+      return { activity_id: r.activity_id, name: r.name || "", definition: r.definition || "", enabled: truthy_(r.enabled) };
     });
 
   return { config: cfg, activity_types: types };
@@ -211,10 +211,11 @@ function PutActivityType_(p) {
   var row = t.findRow("activity_id", p.activity_id);
   var enabled = (p.enabled === undefined) ? true : truthy_(p.enabled);
   if (row) {
-    t.update(row, { definition: p.definition, enabled: enabled });
+    t.update(row, { definition: p.definition, enabled: enabled,
+                    name: (p.name !== undefined ? p.name : (row.name || "")) });
     return { created: false };
   }
-  t.append({ activity_id: p.activity_id, definition: p.definition, enabled: enabled });
+  t.append({ activity_id: p.activity_id, definition: p.definition, enabled: enabled, name: p.name || "" });
   return { created: true };
 }
 

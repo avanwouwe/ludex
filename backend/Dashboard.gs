@@ -42,6 +42,15 @@ function _userLabels_() {
   return map;
 }
 
+// activity_id -> display name (falls back to the id).
+function _activityNames_() {
+  var m = {};
+  table_(SHEETS.activity_types).rows().forEach(function (a) {
+    if (a.activity_id) m[a.activity_id] = a.name || a.activity_id;
+  });
+  return m;
+}
+
 // activity_id -> { daily_max, warn_before } parsed from each activity's definition limits.
 function _activityLimits_() {
   var out = {};
@@ -64,6 +73,7 @@ function buildDashboard_() {
   syncPeople_();
   var labels = _userLabels_();
   var limits = _activityLimits_();
+  var actNames = _activityNames_();
 
   // aggregate seconds by (local date, user, activity).
   var agg = {};
@@ -104,7 +114,9 @@ function buildDashboard_() {
   sheet.getRange(1, 1, 1, 4).setValues([["date", "user", "activity", "minutes"]]).setFontWeight("bold");
   sheet.getRange(1, 4).setNote("Red = over the activity's daily limit; amber = within warn-before of it.");
   if (out.length) {
-    var values = out.map(function (o) { return [o.date, o.user, o.activity, Math.round(o.seconds / 60)]; });
+    var values = out.map(function (o) {
+      return [o.date, o.user, actNames[o.activity] || o.activity, Math.round(o.seconds / 60)];
+    });
     // background per row: red if over the daily limit, amber if near it (B6)
     var WHITE = null, RED = "#f4cccc", AMBER = "#fff2cc";
     var bg = out.map(function (o) {

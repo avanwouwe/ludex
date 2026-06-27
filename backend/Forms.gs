@@ -30,7 +30,7 @@ function getCommandFormData() {
   var users = table_(SHEETS.users).rows().filter(function (u) { return u.user_id; })
     .map(function (u) { return { id: u.user_id, label: labels[u.user_id] || u.user_id }; });
   var acts = table_(SHEETS.activity_types).rows().filter(function (a) { return a.activity_id; })
-    .map(function (a) { return a.activity_id; });
+    .map(function (a) { return { id: a.activity_id, name: a.name || a.activity_id }; });
   return { users: users, activities: acts };
 }
 
@@ -92,7 +92,7 @@ function getLimitsData() {
       var lim;
       try { lim = (JSON.parse(a.definition || "{}").limits) || {}; }
       catch (e) { lim = null; }  // non-JSON definition: not editable here
-      return { id: a.activity_id, limits: lim };
+      return { id: a.activity_id, name: a.name || a.activity_id, limits: lim };
     });
 }
 

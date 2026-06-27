@@ -43,7 +43,7 @@
       function init(d) {
         DATA = d || [];
         var s = document.getElementById('act');
-        DATA.forEach(function (a, i) { var o = document.createElement('option'); o.value = i; o.text = a.id; s.add(o); });
+        DATA.forEach(function (a, i) { var o = document.createElement('option'); o.value = i; o.text = a.name || a.id; s.add(o); });
         fill();
       }
 

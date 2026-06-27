@@ -51,7 +51,7 @@
         if (t === 'notify-user') {
           row.innerHTML = '<label>Message</label><input id="param" type="text">';
         } else if (t === 'stop-activity') {
-          var opts = ACTS.map(function (a) { return '<option value="' + a + '">' + a + '</option>'; }).join('');
+          var opts = ACTS.map(function (a) { return '<option value="' + a.id + '">' + a.name + '</option>'; }).join('');
           row.innerHTML = '<label>Activity</label><select id="param">' + opts + '</select>';
         } else {
           row.innerHTML = '';

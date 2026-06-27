@@ -1,35 +1,42 @@
 /**
  * Ludex onboarding + management menu (bound-sheet UI).
  *
- * Designed so a non-developer parent can: copy this Sheet, set their credentials from a menu,
- * and deploy — without ever touching the code. The only manual step Google forces is the
- * one-time web-app deployment (see ludexDeployHelp).
+ * Progressive disclosure: until credentials are set, only the setup items show. Once configured,
+ * the full menu appears (rare/technical items live under an "Advanced" submenu). A non-developer
+ * parent never has to touch the code; the only manual step Google forces is the one-time web-app
+ * deployment (see ludexDeployHelp).
  */
 
 function onOpen() {
-  SpreadsheetApp.getUi()
-    .createMenu("Ludex")
-    .addItem("① Set credentials…", "ludexSetCredentials")
-    .addItem("② Create / repair sheets", "ludexSetup")
-    .addItem("③ How to deploy the backend…", "ludexDeployHelp")
-    .addItem("Check setup", "ludexCheckSetup")
-    .addItem("Install standard activities", "ludexInstallStandardActivities")
-    .addItem("Edit activity limits…", "ludexLimits")
-    .addItem("Settings…", "ludexSettings")
-    .addSeparator()
-    .addItem("Refresh dashboard", "ludexRefreshDashboard")
-    .addItem("Edit names", "ludexEditNames")
-    .addItem("Send a command…", "ludexSendCommand")
-    .addSeparator()
-    .addItem("Run maintenance now", "ludexRunMaintenance")
-    .addItem("Enable nightly maintenance", "ludexEnableNightlyMaintenance")
-    .addItem("Toggle development mode", "ludexToggleDevMode")
-    .addToUi();
-
+  buildMenu_();
   if (!ludexIsConfigured_()) {
     SpreadsheetApp.getActiveSpreadsheet().toast(
-      "Not configured yet — open the Ludex menu ▸ ① Set credentials.", "Ludex setup", 8);
+      "Welcome! Open the Ludex menu ▸ ① Set credentials to begin.", "Ludex setup", 8);
   }
+}
+
+function buildMenu_() {
+  var ui = SpreadsheetApp.getUi();
+  var menu = ui.createMenu("Ludex");
+
+  if (!ludexIsConfigured_()) {
+    menu.addItem("① Set credentials…", "ludexSetCredentials")
+        .addItem("② How to deploy the backend…", "ludexDeployHelp");
+  } else {
+    menu.addItem("Refresh dashboard", "ludexRefreshDashboard")
+        .addItem("Send a command…", "ludexSendCommand")
+        .addItem("Edit names", "ludexEditNames")
+        .addItem("Edit activity limits…", "ludexLimits")
+        .addItem("Install standard activities", "ludexInstallStandardActivities")
+        .addSeparator()
+        .addItem("Settings…", "ludexSettings")
+        .addItem("Set credentials…", "ludexSetCredentials")
+        .addSubMenu(ui.createMenu("Advanced")
+          .addItem("How to deploy the backend…", "ludexDeployHelp")
+          .addItem("Create / repair sheets", "ludexSetup")
+          .addItem("Run maintenance now", "ludexRunMaintenance"));
+  }
+  menu.addToUi();
 }
 
 function ludexIsConfigured_() {
@@ -37,10 +44,16 @@ function ludexIsConfigured_() {
   return !!p.getProperty("SHARED_TOKEN") && !!p.getProperty("ADMIN_PASSWORD");
 }
 
-// ① Credentials — a small masked HTML form (passwords aren't echoed in plain prompts).
+// ① Credentials — an HTML form. Shared key shown, admin password hidden; both prefilled.
 function ludexSetCredentials() {
-  var html = HtmlService.createHtmlOutputFromFile("Setup").setWidth(420).setHeight(320);
+  var html = HtmlService.createHtmlOutputFromFile("Setup").setWidth(440).setHeight(300);
   SpreadsheetApp.getUi().showModalDialog(html, "Ludex — set credentials");
+}
+
+// called from Setup.html to prefill the form
+function getCredentials() {
+  var p = PropertiesService.getScriptProperties();
+  return { token: p.getProperty("SHARED_TOKEN") || "", admin: p.getProperty("ADMIN_PASSWORD") || "" };
 }
 
 // called from Setup.html via google.script.run
@@ -49,11 +62,16 @@ function ludexSaveCredentials(token, admin) {
   admin = (admin || "").trim();
   if (!token || !admin) throw new Error("Both fields are required.");
   var p = PropertiesService.getScriptProperties();
+  var firstTime = !ludexIsConfigured_();
   p.setProperty("SHARED_TOKEN", token);
   p.setProperty("ADMIN_PASSWORD", admin);
-  ludexSetup();  // make sure the data tabs exist
+
+  ludexSetup();                  // create/repair the data tabs, dashboard, people, formatting
+  if (firstTime) enableNightlyMaintenance_();  // schedule the nightly rollup automatically
+  buildMenu_();                  // reveal the full menu now that we're configured
+
   SpreadsheetApp.getActiveSpreadsheet().toast(
-    "Credentials saved. Next: Ludex ▸ ③ How to deploy.", "Ludex", 6);
+    "Saved. Next: Ludex ▸ ② How to deploy the backend.", "Ludex", 6);
 }
 
 function ludexSetup() {
@@ -77,28 +95,4 @@ function ludexDeployHelp() {
     + "If you change the code later, repeat with Deploy ▸ Manage deployments ▸ "
     + "edit ▸ New version (this keeps the same URL).",
     SpreadsheetApp.getUi().ButtonSet.OK);
-}
-
-// In-process setup check (no external request scope needed).
-function ludexCheckSetup() {
-  var ui = SpreadsheetApp.getUi();
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var lines = [];
-  lines.push(ludexIsConfigured_() ? "✓ Credentials are set"
-    : "✗ Credentials NOT set — use ① Set credentials");
-
-  var need = ["config", "users", "activity_log", "activity_types", "commands"];
-  var missing = need.filter(function (n) { return !ss.getSheetByName(n); });
-  lines.push(missing.length ? "✗ Missing tabs: " + missing.join(", ") + " — use ② Create / repair sheets"
-    : "✓ All data tabs exist");
-
-  var raw = "";
-  try { raw = ScriptApp.getService().getUrl() || ""; } catch (e) {}
-  lines.push(raw ? "✓ Web app is deployed" : "✗ Not deployed — use ③ How to deploy");
-
-  try { GetConfig_({}); lines.push("✓ Backend logic responds"); }
-  catch (e) { lines.push("✗ Backend error: " + e.message); }
-
-  lines.push("", "Final check: open your /exec URL in a browser — it should say \"ludex backend alive\".");
-  ui.alert("Ludex setup check", lines.join("\n"), ui.ButtonSet.OK);
 }
