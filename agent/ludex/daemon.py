@@ -54,6 +54,7 @@ class Daemon:
         self.identity: Identity = None  # type: ignore
         self._stop = False
         self._reload_requested = False
+        self._last_tick = None  # monotonic time of the previous sample, for time attribution
         # test/override knobs (None = use backend-provided config)
         self._override_sample = sample_interval
         self._override_sync = sync_interval
@@ -147,10 +148,19 @@ class Daemon:
     # ----- sample tick -----
     def _sample(self):
         from .detection import detect  # imported here so --detect-app paths don't require a loop
-        t0 = time.monotonic()
         hits = detect(list(self.activities.values()), cpu_interval=CPU_INTERVAL)
         active_ids = set(hits.keys())
-        elapsed = time.monotonic() - t0  # real time this tick covered (includes CPU window)
+
+        # Attribute the wall time since the PREVIOUS sample to whatever is active now — that is the
+        # interval this sample represents (~sample_interval), not just the ~1s detection window.
+        # Cap it so a long gap (suspend/sleep, a stalled loop) can't over-count: time.monotonic()
+        # already pauses during system sleep on macOS/Linux, and the cap is a belt-and-braces guard.
+        now = time.monotonic()
+        if self._last_tick is None:
+            elapsed = 0.0
+        else:
+            elapsed = min(now - self._last_tick, self.gconfig.sample_interval_s * 2)
+        self._last_tick = now
 
         warnings = evaluate(self.state, self.activities, active_ids)
         self.state.record_sample(active_ids, elapsed)
