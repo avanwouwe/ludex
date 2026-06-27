@@ -4,7 +4,7 @@
  * ludex* function (called with google.script.run). Also applies status coloring to the commands tab.
  */
 
-var COMMAND_TYPES = ["notify-user", "stop-activity", "shutdown-endpoint", "reload-config"];
+var COMMAND_TYPES = ["notify-user", "stop-activity", "shutdown-endpoint"];
 
 var CONFIG_FIELDS = [
   { key: "sample_interval_s",   label: "Sample interval (seconds)",  desc: "How often the agent checks what's running." },

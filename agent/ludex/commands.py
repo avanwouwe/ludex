@@ -6,7 +6,7 @@ Runs as the logged-in user (no admin). `stop-activity` can only kill user-owned 
 
 from __future__ import annotations
 
-from typing import Callable, Dict, Tuple
+from typing import Callable, Dict, Tuple  # Callable kept for _HANDLERS type
 
 import psutil
 
@@ -16,9 +16,8 @@ from .platform import get_platform
 
 
 class CommandContext:
-    def __init__(self, activities: Dict[str, ActivityType], request_reload: Callable[[], None]):
+    def __init__(self, activities: Dict[str, ActivityType]):
         self.activities = activities
-        self.request_reload = request_reload
 
 
 def execute(cmd: Command, ctx: CommandContext) -> Tuple[str, str]:
@@ -57,14 +56,8 @@ def _shutdown_endpoint(cmd: Command, ctx: CommandContext) -> str:
     return get_platform().shutdown()
 
 
-def _reload_config(cmd: Command, ctx: CommandContext) -> str:
-    ctx.request_reload()
-    return "config reload requested"
-
-
 _HANDLERS: Dict[str, Callable[[Command, CommandContext], str]] = {
     "notify-user": _notify_user,
     "stop-activity": _stop_activity,
     "shutdown-endpoint": _shutdown_endpoint,
-    "reload-config": _reload_config,
 }

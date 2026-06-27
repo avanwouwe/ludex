@@ -53,7 +53,6 @@ class Daemon:
         self.activities: Dict[str, ActivityType] = {}
         self.identity: Identity = None  # type: ignore
         self._stop = False
-        self._reload_requested = False
         self._last_tick = None  # monotonic time of the previous sample, for time attribution
         # test/override knobs (None = use backend-provided config)
         self._override_sample = sample_interval
@@ -67,9 +66,6 @@ class Daemon:
             self.gconfig.sync_interval_s = self._override_sync
 
     # ----- lifecycle -----
-    def request_reload(self):
-        self._reload_requested = True
-
     def _install_signals(self):
         for sig in (signal.SIGINT, signal.SIGTERM):
             try:
@@ -124,8 +120,7 @@ class Daemon:
             self._sample()
             now = time.monotonic()
             # in cycle-limited (test) mode, sync every cycle so a short run still exercises sync
-            if (self.max_cycles is not None or now - last_sync >= self.gconfig.sync_interval_s
-                    or self._reload_requested):
+            if (self.max_cycles is not None or now - last_sync >= self.gconfig.sync_interval_s):
                 self._sync()
                 last_sync = time.monotonic()
 
@@ -196,8 +191,6 @@ class Daemon:
             self.gconfig = GlobalConfig.from_dict(cfg.data.get("config"))
             self.activities = _parse_types(cfg.data.get("activity_types", []), self.platform.os_key)
             self._apply_overrides()
-        self._reload_requested = False
-
         cmds_res = results.get("cmds")
         if cmds_res and cmds_res.ok:
             self._run_commands([Command(c["command_id"], c["command_type"], c.get("params", ""))
@@ -206,7 +199,7 @@ class Daemon:
     def _run_commands(self, commands: List[Command]):
         if not commands:
             return
-        ctx = CommandContext(self.activities, self.request_reload)
+        ctx = CommandContext(self.activities)
         acks = []
         for cmd in commands:
             status, result = execute(cmd, ctx)
