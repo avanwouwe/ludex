@@ -38,11 +38,18 @@
       <svg viewBox="0 0 24 24"><path d="M20.795 16.096l-1.523-1.523C19.713 13.705 20 12.869 20 12s-.287-1.705-.728-2.573l1.523-1.523C21.591 9.37 22 10.633 22 12s-.409 2.63-1.205 3.596zM16.096 3.205l-1.523 1.523C13.705 4.287 12.869 4 12 4s-1.705.287-2.573.728L7.904 3.205C8.87 2.409 10.133 2 12 2s3.13.409 4.096 1.205zM3.205 7.904l1.523 1.523C4.287 10.295 4 11.131 4 12s.287 1.705.728 2.573l-1.523 1.523C2.409 15.13 2 13.867 2 12s.409-3.13 1.205-4.096zM7.904 20.795l1.523-1.523C10.295 19.713 11.131 20 12 20s1.705-.287 2.573-.728l1.523 1.523C15.13 21.591 13.867 22 12 22s-3.13-.409-4.096-1.205zM12 8a4 4 0 100 8 4 4 0 000-8z"/></svg>
       Linux
     </span>
-    <span class="badge dim">
-      Windows — coming soon
+    <span class="badge">
+      <svg viewBox="0 0 24 24"><path d="M3 3h8.5v8.5H3V3zm9.5 0H21v8.5h-8.5V3zM3 12.5h8.5V21H3v-8.5zm9.5 0H21V21h-8.5v-8.5z"/></svg>
+      Windows
     </span>
     <span class="badge">
-      Requires a free Google account
+      <svg viewBox="0 0 24 24">
+        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/>
+        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+      </svg>
+      Uses your Gmail account
     </span>
   </div>
 </section>
@@ -53,15 +60,14 @@
     <div class="section-label">How it works</div>
     <h2>Set up in two steps. Then forget about it.</h2>
     <p class="lead">
-      No subscription, no cloud service, no company holding your family's data.
-      Ludex runs on your own Google account.
+      No subscription, no new cloud service, use your existing Gmail account.
     </p>
     <div class="steps">
       <div class="step">
         <div class="step-num">1</div>
         <h3>Create your self-hosted dashboard</h3>
         <p>
-          Paste the Ludex script into your Google account. A private Google Sheet
+          Copy the provided Google Sheet. That private Google Sheet
           becomes your dashboard — your data lives there and nowhere else.
         </p>
       </div>
@@ -70,7 +76,7 @@
         <h3>Install the agent on your child's computer</h3>
         <p>
           A small app runs quietly in the background, tracking which apps are open
-          and for how long. No admin rights needed.
+          and for how long.
         </p>
       </div>
       <div class="step">
@@ -78,7 +84,7 @@
         <h3>That's it</h3>
         <p>
           Activity syncs to your dashboard automatically. Set limits per activity,
-          give apps friendly names, and get email alerts when a limit is crossed.
+          and get email alerts when a limit is crossed.
         </p>
       </div>
     </div>
@@ -122,7 +128,7 @@
         <h2>Transparency, not surveillance.</h2>
         <p>
           Most parental control tools are spy tools with a friendly face.
-          Ludex is the opposite: it tracks <strong>defined activities</strong> and
+          Ludex is the opposite: it tracks only <strong>defined activities</strong> and
           <strong>time</strong> — nothing else. Your child knows exactly what's tracked.
         </p>
         <ul class="check-list">
@@ -133,7 +139,7 @@
         <ul class="cross-list" style="margin-top: 16px;">
           <li>No keystrokes, no messages, no content</li>
           <li>No screenshots</li>
-          <li>No third-party servers</li>
+          <li>No unknown servers</li>
         </ul>
       </div>
       <div class="screenshot">
@@ -150,10 +156,10 @@
       <div class="section-label">Open source</div>
       <h2>Built by a parent, for parents.</h2>
       <p class="lead" style="margin-bottom: 28px;">
-        Ludex is free and open source (GPL-3). The code is public — you can read exactly
+        Ludex is free and open source. The code is public — you can read exactly
         what it does, host it yourself, and keep it forever regardless of what happens to this project.
       </p>
-      <a href="https://github.com/arno-vanwouwe/ludex" class="btn btn-primary" target="_blank">
+      <a href="https://github.com/avanwouwe/ludex" class="btn btn-primary" target="_blank">
         View on GitHub
       </a>
     </div>
@@ -163,12 +169,12 @@
 <!-- ── CTA ── -->
 <div class="cta-band">
   <h2>Ready to end the argument?</h2>
-  <p>Takes about 15 minutes to set up. No subscription, no account, no cost.</p>
+  <p>Takes about 15 minutes to set up. No service subscription, no account, no cost.</p>
   <a href="install.html" class="btn btn-primary">Get started →</a>
 </div>
 
 <footer>
-  <p>Ludex is open source — <a href="https://github.com/arno-vanwouwe/ludex">GPL-3.0</a> &nbsp;·&nbsp; Built for families who value transparency</p>
+  <p>Ludex is open source — <a href="https://github.com/avanwouwe/ludex">GPL-3.0</a> &nbsp;·&nbsp; Built for families who value transparency and empowerment</p>
 </footer>
 
 </body>

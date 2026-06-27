@@ -26,7 +26,7 @@ function buildMenu_() {
     menu.addItem("Refresh dashboard", "ludexRefreshDashboard")
         .addItem("Activity analysis", "ludexUsageChart")
         .addItem("Send a command", "ludexSendCommand")
-        .addItem("Edit names", "ludexEditNames")
+        .addItem("Edit people", "ludexEditNames")
         .addItem("Edit activity limits", "ludexLimits")
         .addSeparator()
         .addItem("Settings", "ludexSettings")
