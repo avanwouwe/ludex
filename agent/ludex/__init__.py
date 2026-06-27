@@ -5,4 +5,4 @@ runs those commands, and shows local warnings. The agent persists nothing to dis
 all runtime state lives in memory and is recovered from the backend log on startup.
 """
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"

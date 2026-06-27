@@ -42,6 +42,56 @@ var STANDARD_ACTIVITIES = [
     activity_id: "discord",
     definition: { match_any: [{ name_contains: "discord" }], min_cpu_percent: 1,
                   limits: { daily_max_minutes: 120, warn_before_minutes: 15 } }
+  },
+  {
+    activity_id: "league-of-legends",
+    definition: { match_any: [{ name_contains: "league of legends" }, { name_contains: "leagueclient" }],
+                  min_cpu_percent: 5, limits: { daily_max_minutes: 90, warn_before_minutes: 10 } }
+  },
+  {
+    activity_id: "valorant",
+    definition: { match_any: [{ name_contains: "valorant" }], min_cpu_percent: 5,
+                  limits: { daily_max_minutes: 90, warn_before_minutes: 10 } }
+  },
+  {
+    activity_id: "rocket-league",
+    definition: { match_any: [{ name_contains: "rocketleague" }], min_cpu_percent: 5,
+                  limits: { daily_max_minutes: 90, warn_before_minutes: 10 } }
+  },
+  {
+    activity_id: "genshin-impact",
+    definition: { match_any: [{ name_contains: "genshin" }], min_cpu_percent: 5,
+                  limits: { daily_max_minutes: 90, warn_before_minutes: 10 } }
+  },
+  {
+    activity_id: "gta-v",
+    definition: { match_any: [{ name_contains: "gta5" }, { name_contains: "gtav" }], min_cpu_percent: 5,
+                  limits: { daily_max_minutes: 90, warn_before_minutes: 10 } }
+  },
+  {
+    activity_id: "among-us",
+    definition: { match_any: [{ name_contains: "among us" }], min_cpu_percent: 3,
+                  limits: { daily_max_minutes: 90, warn_before_minutes: 10 } }
+  },
+  {
+    activity_id: "terraria",
+    definition: { match_any: [{ name_contains: "terraria" }], min_cpu_percent: 3,
+                  limits: { daily_max_minutes: 90, warn_before_minutes: 10 } }
+  },
+  {
+    activity_id: "epic-games-launcher",
+    definition: { match_any: [{ name_contains: "epicgames" }], min_cpu_percent: 3,
+                  limits: { daily_max_minutes: 120, warn_before_minutes: 10 } }
+  },
+  {
+    activity_id: "spotify",
+    definition: { match_any: [{ name_contains: "spotify" }], min_cpu_percent: 1,
+                  limits: { daily_max_minutes: 180, warn_before_minutes: 15 } }
+  },
+  {
+    activity_id: "zoom",
+    definition: { match_any: [{ name_contains: "zoom" }], min_cpu_percent: 1,
+                  limits: { daily_max_minutes: 240, warn_before_minutes: 15 } }
   }
 ];
 
