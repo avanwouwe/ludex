@@ -72,6 +72,13 @@ python3 -m venv .venv && .venv/bin/pip install -e '.[build]'
 The URL + shared key are stored only in the service definition's environment (no config file);
 see [`docs/architecture.md`](docs/architecture.md) §9.
 
+> **macOS, if you *downloaded* a prebuilt binary** (rather than building it locally): macOS attaches
+> a quarantine flag to downloaded files. Clear it once before installing:
+> ```bash
+> xattr -dr com.apple.quarantine ./ludex
+> ```
+> Building locally with `build.sh` produces no quarantine flag, so this step isn't needed then.
+
 ## Documentation
 
 - [`docs/architecture.md`](docs/architecture.md) — full system design, agent lifecycle, backend
