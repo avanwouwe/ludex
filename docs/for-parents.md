@@ -32,16 +32,56 @@ Part 3).
 ## Part 2 — The agent (on each child's computer)
 
 The agent is a small app that runs quietly as your child's normal user account (it needs no
-administrator rights).
+administrator rights). You'll need the **backend address** (the `/exec` URL) and your **shared key**
+from Part 1.
 
-1. Get the `ludex` app for that computer's operating system.
-   - *(macOS, if you downloaded it rather than built it: macOS flags downloaded apps. Open Terminal
-     and run `xattr -dr com.apple.quarantine ./ludex` once.)*
-2. Run **`ludex install`**. It asks for your **backend address** (the `/exec` URL) and your
-   **shared key**, checks they work, and then keeps itself running in the background.
+**Download it** from the releases page — pick the file for that computer:
 
-To change the shared key later, just run `ludex install` again with the new key. To remove Ludex
-from a computer, run `ludex uninstall`.
+➡️ **[Download Ludex](https://github.com/avanwouwe/ludex/releases/latest)**
+
+| Computer | File to download |
+|----------|------------------|
+| Mac with Apple chip (M1/M2/M3/M4) | `ludex-macos-arm64` |
+| Mac with Intel chip | `ludex-macos-x86_64` |
+| Linux (64-bit) | `ludex-linux-x86_64` |
+| Windows | *not supported yet* |
+
+*Not sure which Mac you have?* Click the Apple menu  ▸ **About This Mac**. If the "Chip" line says
+**Apple**, choose arm64; if it says **Intel**, choose x86_64.
+
+### macOS
+
+Open the **Terminal** app (Applications ▸ Utilities ▸ Terminal) and run, one line at a time:
+
+```bash
+cd ~/Downloads
+xattr -dr com.apple.quarantine ludex-macos-*   # clears the "downloaded from internet" flag
+chmod +x ludex-macos-*                          # make it runnable
+mv ludex-macos-* ludex                          # tidy name
+./ludex install                                 # asks for the backend URL + shared key
+```
+
+The first time a warning pops up, macOS may ask you to allow notifications/alerts for it — say yes,
+so your child actually sees the warnings.
+
+### Linux
+
+Open a terminal and run:
+
+```bash
+cd ~/Downloads
+chmod +x ludex-linux-x86_64
+mv ludex-linux-x86_64 ludex
+./ludex install            # asks for the backend URL + shared key
+```
+
+For the on-screen warnings to appear, the computer needs the standard notification helper. On
+Debian/Ubuntu: `sudo apt install libnotify-bin`. (Most desktops already have it.)
+
+### Afterwards
+
+- **Change the shared key later:** run `./ludex install` again with the new key.
+- **Remove Ludex from a computer:** run `./ludex uninstall`.
 
 ---
 

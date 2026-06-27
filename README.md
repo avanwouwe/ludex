@@ -54,6 +54,9 @@ built. **Linux is the first supported platform**; the architecture is being kept
 
 The agent ships as a **single binary** that is its own installer — the endpoint needs no Python.
 
+Most people should **[download a prebuilt binary](https://github.com/avanwouwe/ludex/releases/latest)**
+and follow the [parent install guide](docs/for-parents.md). To build it yourself:
+
 ```bash
 # Build the binary (run on each target OS — PyInstaller does not cross-compile)
 cd agent

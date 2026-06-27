@@ -1,0 +1,56 @@
+name: release
+
+# Build the agent binary for each OS and attach it to a GitHub Release.
+# Trigger by pushing a version tag, e.g.:  git tag v0.1.0 && git push origin v0.1.0
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write   # needed to create the release and upload assets
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create the release if it does not exist
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          gh release view "${GITHUB_REF_NAME}" >/dev/null 2>&1 || \
+          gh release create "${GITHUB_REF_NAME}" \
+            --title "Ludex ${GITHUB_REF_NAME}" \
+            --notes "Download the agent binary for your operating system below. See docs/for-parents.md for the install guide."
+
+  build:
+    needs: create-release
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-22.04   # older glibc => runs on more Linux distros
+            label: linux-x86_64
+          - os: macos-13       # Intel
+            label: macos-x86_64
+          - os: macos-14       # Apple Silicon
+            label: macos-arm64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Build single-file binary
+        working-directory: agent
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e '.[build]'
+          bash packaging/build.sh
+      - name: Upload binary to the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          cp agent/dist/ludex "ludex-${{ matrix.label }}"
+          gh release upload "${GITHUB_REF_NAME}" "ludex-${{ matrix.label }}" --clobber
