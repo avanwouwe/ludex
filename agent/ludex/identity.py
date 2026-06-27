@@ -12,6 +12,7 @@ import socket
 
 import requests
 
+from . import __version__
 from .models import Identity
 from .platform import get_platform
 
@@ -48,4 +49,5 @@ def resolve_identity(include_public_ip: bool = True) -> Identity:
         system_username=login,
         public_ip=fetch_public_ip() if include_public_ip else "",
         os=platform.os_key,
+        version=__version__,
     )

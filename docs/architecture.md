@@ -110,7 +110,9 @@ it directly (the dashboard is built on these later).
   `sync_interval_s`, `warn_before_minutes`, …).
 
 - **`users`** — one row per `user_id`: `host_id`, `hostname`, `system_username`, `public_ip`,
-  `os` (`linux`/`mac`/`windows`, derived by the agent), `first_seen`, `last_seen`.
+  `os` (`linux`/`mac`/`windows`, derived by the agent), `version` (agent version, compiled in),
+  `first_seen`, `last_seen`. A stale `last_seen` is the heartbeat-gap signal (the agent updates it
+  every sync, so a device going quiet is visible without any extra privilege).
 - **`activity_log`** — append-only history: `server_time`, `user_id`, `period_start`, `period_end`,
   `period_seconds`, `activity_id`, `activity_seconds`. One row per (period × active activity), or a
   period with no activity recorded as a single zero row.

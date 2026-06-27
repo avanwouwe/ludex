@@ -49,7 +49,7 @@ containing the matching results, in order**.
 Creates the row if `user_id` is unknown, updates it otherwise.
 ```json
 { "host_id": "...", "user_id": "...", "hostname": "...",
-  "system_username": "...", "public_ip": "...", "os": "mac" }
+  "system_username": "...", "public_ip": "...", "os": "mac", "version": "0.1.2" }
 ```
 → `data: { "created": true|false }`
 

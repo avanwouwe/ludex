@@ -86,3 +86,4 @@ class Identity:
     system_username: str
     public_ip: str = ""
     os: str = ""  # os_key: linux | mac | windows
+    version: str = ""  # agent version (compiled in)

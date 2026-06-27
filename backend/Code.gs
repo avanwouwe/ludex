@@ -25,7 +25,7 @@ function DEVELOPMENT_MODE_() { return truthy_(prop_("DEVELOPMENT_MODE", "")); }
 
 var SHEETS = {
   config:         { name: "config",         headers: ["key", "value"] },
-  users:          { name: "users",          headers: ["user_id", "host_id", "hostname", "system_username", "public_ip", "os", "first_seen", "last_seen"] },
+  users:          { name: "users",          headers: ["user_id", "host_id", "hostname", "system_username", "public_ip", "os", "version", "first_seen", "last_seen"] },
   activity_log:   { name: "activity_log",   headers: ["server_time", "user_id", "period_start", "period_end", "period_seconds", "activity_id", "activity_seconds"] },
   activity_types: { name: "activity_types", headers: ["activity_id", "definition", "enabled", "name"] },
   commands:       { name: "commands",       headers: ["command_id", "user_id", "command_type", "params", "status", "created", "executed", "result"] }
@@ -103,14 +103,14 @@ function UpdateUser_(p) {
   if (row) {
     t.update(row, {
       host_id: p.host_id, hostname: p.hostname || "", system_username: p.system_username || "",
-      public_ip: p.public_ip || "", os: p.os || "", last_seen: now
+      public_ip: p.public_ip || "", os: p.os || "", version: p.version || "", last_seen: now
     });
     return { created: false };
   }
   t.append({
     user_id: p.user_id, host_id: p.host_id, hostname: p.hostname || "",
     system_username: p.system_username || "", public_ip: p.public_ip || "", os: p.os || "",
-    first_seen: now, last_seen: now
+    version: p.version || "", first_seen: now, last_seen: now
   });
   return { created: true };
 }

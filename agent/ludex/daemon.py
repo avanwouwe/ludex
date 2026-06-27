@@ -98,6 +98,7 @@ class Daemon:
             "system_username": self.identity.system_username,
             "public_ip": self.identity.public_ip,
             "os": self.identity.os,
+            "version": self.identity.version,
         })
 
         rec = self.client.call_one("GetActivityLog", {
