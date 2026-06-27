@@ -66,8 +66,8 @@ function ludexDeployHelp() {
     + "2. Select type:  Web app\n"
     + "3. Execute as:  Me\n"
     + "4. Who has access:  Anyone\n"
-    + "5. Click Deploy, authorize, and copy the Web app URL (ends in /exec)\n\n"
-    + "Then use Ludex ▸ Show backend address to get the short ID for each computer's "
+    + "5. Click Deploy and authorize\n\n"
+    + "Then use Ludex ▸ Show backend address to get the Backend ID for each computer's "
     + "`ludex install`.\n\n"
     + "If you change the code later, repeat with Deploy ▸ Manage deployments ▸ "
     + "edit ▸ New version (this keeps the same URL).",
@@ -87,22 +87,19 @@ function ludexShowBackendUrl() {
     return;
   }
   var id = m[1];
-  var url = "https://script.google.com/macros/s/" + id + "/exec";
   var html = '<!DOCTYPE html><html><head><base target="_top"><style>'
     + 'body{font-family:Arial,sans-serif;font-size:13px;margin:16px}'
     + 'label{font-weight:bold;display:block;margin-top:12px}'
     + 'input{width:100%;box-sizing:border-box;padding:6px;font-family:monospace}'
     + 'button{margin-top:6px;padding:6px 12px}.muted{color:#666}</style></head><body>'
-    + '<div class="muted">Give the <b>Backend ID</b> (or the full URL) to each computer when you run '
+    + '<div class="muted">Give this <b>Backend ID</b> to each computer when you run '
     + '<code>ludex install</code>.</div>'
     + '<label>Backend ID</label><input id="id" readonly value="' + id + '">'
-    + '<button onclick="cp(\'id\')">Copy ID</button>'
-    + '<label>Full URL</label><input id="url" readonly value="' + url + '">'
-    + '<button onclick="cp(\'url\')">Copy URL</button> <span id="s" class="muted"></span>'
+    + '<button onclick="cp(\'id\')">Copy ID</button> <span id="s" class="muted"></span>'
     + '<script>function cp(k){var e=document.getElementById(k);e.select();'
     + 'navigator.clipboard.writeText(e.value).then(function(){document.getElementById("s").textContent="copied!";});}<\/script>'
     + '</body></html>';
-  ui.showModalDialog(HtmlService.createHtmlOutput(html).setWidth(540).setHeight(260), "Ludex backend address");
+  ui.showModalDialog(HtmlService.createHtmlOutput(html).setWidth(540).setHeight(220), "Ludex Backend ID");
 }
 
 // In-process setup check (no external request scope needed).

@@ -36,11 +36,11 @@ def cmd_install(args):
     from .config import normalize_backend_url
     from .platform import get_platform
     from .transport import BackendClient, BackendError
-    raw = args.url or input("Backend ID (or full /exec URL): ").strip()
+    raw = args.url or input("Backend ID: ").strip()
     url = normalize_backend_url(raw)
     token = args.token or getpass.getpass("Shared key: ").strip()
     if not url or not token:
-        sys.exit("both backend ID/URL and shared key are required")
+        sys.exit("both backend ID and shared key are required")
 
     # Validate before registering anything — a bad URL/key should fail here, not silently
     # later inside a background service.

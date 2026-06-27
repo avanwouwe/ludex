@@ -32,8 +32,7 @@ Part 3).
 ## Part 2 — The agent (on each child's computer)
 
 The agent is a small app that runs quietly as your child's normal user account (it needs no
-administrator rights). You'll need your **Backend ID** (or the full `/exec` URL) and your **shared
-key** from Part 1 — `ludex install` accepts either.
+administrator rights). You'll need your **Backend ID** and your **shared key** from Part 1.
 
 **Download it** from the releases page — pick the file for that computer:
 
@@ -54,7 +53,7 @@ cd ~/Downloads
 xattr -dr com.apple.quarantine ludex-macos-*   # clears the "downloaded from internet" flag
 chmod +x ludex-macos-*                          # make it runnable
 mv ludex-macos-* ludex                          # tidy name
-./ludex install                                 # asks for the backend URL + shared key
+./ludex install                                 # asks for the Backend ID + shared key
 ```
 
 The first time a warning pops up, macOS may ask you to allow notifications/alerts for it — say yes,
@@ -68,7 +67,7 @@ Open a terminal and run:
 cd ~/Downloads
 chmod +x ludex-linux-x86_64
 mv ludex-linux-x86_64 ludex
-./ludex install            # asks for the backend URL + shared key
+./ludex install            # asks for the Backend ID + shared key
 ```
 
 For the on-screen warnings to appear, the computer needs the standard notification helper. On
