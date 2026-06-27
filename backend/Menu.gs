@@ -20,19 +20,19 @@ function buildMenu_() {
   var menu = ui.createMenu("Ludex");
 
   if (!ludexIsConfigured_()) {
-    menu.addItem("① Set credentials…", "ludexSetCredentials")
-        .addItem("② How to deploy the backend…", "ludexDeployHelp");
+    menu.addItem("① Set credentials", "ludexSetCredentials")
+        .addItem("② How to deploy the dashboard", "ludexDeployHelp");
   } else {
     menu.addItem("Refresh dashboard", "ludexRefreshDashboard")
-        .addItem("Activity analysis…", "ludexUsageChart")
-        .addItem("Send a command…", "ludexSendCommand")
+        .addItem("Activity analysis", "ludexUsageChart")
+        .addItem("Send a command", "ludexSendCommand")
         .addItem("Edit names", "ludexEditNames")
-        .addItem("Edit activity limits…", "ludexLimits")
+        .addItem("Edit activity limits", "ludexLimits")
         .addSeparator()
-        .addItem("Settings…", "ludexSettings")
-        .addItem("Set credentials…", "ludexSetCredentials")
+        .addItem("Settings", "ludexSettings")
+        .addItem("Set credentials", "ludexSetCredentials")
         .addSubMenu(ui.createMenu("Advanced")
-          .addItem("How to deploy the backend…", "ludexDeployHelp")
+          .addItem("How to deploy the dashboard", "ludexDeployHelp")
           .addItem("Create / repair sheets", "ludexSetup")
           .addItem("Install standard activities", "ludexInstallStandardActivities")
           .addItem("Run maintenance now", "ludexRunMaintenance"));
@@ -80,15 +80,16 @@ function ludexSaveCredentials(token, admin) {
 }
 
 function ludexSetup() {
-  setup();                  // from Code.gs: creates data tabs + seeds config defaults
-  buildDashboardSheet_();   // ensure the dashboard tab exists
-  syncPeople_();            // ensure the people (friendly names) tab exists
-  applyCommandFormatting_();// color the commands status column (pending/done/failed)
+  setup();                   // from Code.gs: creates data tabs + seeds config defaults
+  buildDashboardSheet_();    // ensure the dashboard tab exists
+  syncPeople_();             // ensure the people (friendly names) tab exists
+  applyCommandFormatting_(); // color the commands status column (pending/done/failed)
+  applySheetHeaderStyles_(); // pretty headers on commands, people, users sheets
   SpreadsheetApp.getActiveSpreadsheet().toast("Sheets ready.", "Ludex", 4);
 }
 
 function ludexDeployHelp() {
-  SpreadsheetApp.getUi().alert("Deploy the Ludex backend (one time)",
+  SpreadsheetApp.getUi().alert("Deploy the Ludex dashboard (one time)",
     "In the script editor (Extensions ▸ Apps Script):\n\n"
     + "1. Click  Deploy ▸ New deployment\n"
     + "2. Select type:  Web app\n"
@@ -96,8 +97,6 @@ function ludexDeployHelp() {
     + "4. Who has access:  Anyone\n"
     + "5. Click Deploy and authorize\n\n"
     + "Copy the Web app URL it shows (it ends in /exec). Give that URL and your shared key to "
-    + "each computer when you install Ludex there.\n\n"
-    + "If you change the code later, repeat with Deploy ▸ Manage deployments ▸ "
-    + "edit ▸ New version (this keeps the same URL).",
+    + "each computer when you install Ludex there.",
     SpreadsheetApp.getUi().ButtonSet.OK);
 }

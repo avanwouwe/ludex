@@ -115,7 +115,8 @@ function buildDashboard_() {
 
   var sheet = ss.getSheetByName(DASHBOARD_SHEET) || ss.insertSheet(DASHBOARD_SHEET);
   sheet.clear();
-  sheet.getRange(1, 1, 1, 4).setValues([["date", "user", "activity", "minutes"]]).setFontWeight("bold");
+  sheet.getRange(1, 1, 1, 4).setValues([["date", "user", "activity", "minutes"]])
+    .setBackground("#1a3c5e").setFontColor("#ffffff").setFontWeight("bold").setFontSize(10);
   sheet.getRange(1, 4).setNote("Red = over the activity's daily limit; amber = within warn-before of it.");
   if (out.length) {
     var values = out.map(function (o) {
@@ -150,3 +151,30 @@ function ludexEditNames() {
 }
 
 // Command entry, settings and limits editors now live in Forms.gs (HTML dialogs).
+
+// Apply a consistent header style to the Commands, People, and Users sheets.
+function applySheetHeaderStyles_() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var HEADER_BG = "#1a3c5e";
+  var HEADER_FG = "#ffffff";
+  var sheetDefs = [
+    { name: "commands",  cols: 8 },
+    { name: "people",    cols: 3 },
+    { name: "users",     cols: 9 },
+    { name: "dashboard", cols: 4 },
+    { name: "analysis",  cols: 20 }
+  ];
+  sheetDefs.forEach(function (def) {
+    var sh = ss.getSheetByName(def.name);
+    if (!sh) return;
+    var cols = Math.min(def.cols, sh.getLastColumn() || def.cols);
+    if (cols < 1) return;
+    sh.getRange(1, 1, 1, cols)
+      .setBackground(HEADER_BG)
+      .setFontColor(HEADER_FG)
+      .setFontWeight("bold")
+      .setFontSize(10);
+    sh.setFrozenRows(1);
+    sh.autoResizeColumns(1, cols);
+  });
+}

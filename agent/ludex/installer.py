@@ -14,9 +14,15 @@ def validate_and_install(url: str, token: str) -> str:
     url = (url or "").strip()
     token = (token or "").strip()
     if not url or not token:
-        raise ValueError("Backend URL and shared key are both required.")
+        raise ValueError("Dashboard URL and shared key are both required.")
+    if "docs.google.com/spreadsheets" in url:
+        raise ValueError(
+            "That looks like a Google Sheet link, not the Dashboard URL.\n"
+            "You need the Web app URL (ending in /exec) from your deployment.\n"
+            "In Apps Script: Deploy → Manage deployments → copy the /exec URL."
+        )
     if "/exec" not in url:
-        raise ValueError("That doesn't look like a backend URL (it should end in /exec).")
+        raise ValueError("That doesn't look like a Dashboard URL — it should end in /exec.")
 
     res = BackendClient(url, token).call_one("GetConfig", {})  # may raise BackendError
     if not res.ok:

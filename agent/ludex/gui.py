@@ -27,8 +27,8 @@ _PAGE = b"""<!DOCTYPE html>
  .ok{color:#080} .err{color:#a00}
 </style></head><body>
  <h1>Install Ludex on this computer</h1>
- <p class="desc">Enter the details from your Ludex sheet.</p>
- <label>Backend URL <span class="desc">(ends in /exec)</span></label>
+ <p class="desc">Enter the details from your Ludex dashboard.</p>
+ <label>Dashboard URL <span class="desc">(the web app URL ending in /exec — not the Google Sheet link)</span></label>
  <input id="url" type="text" autocomplete="off" autofocus>
  <label>Shared key</label>
  <input id="token" type="password" autocomplete="off">
@@ -37,7 +37,11 @@ _PAGE = b"""<!DOCTYPE html>
 <script>
  function msg(t,c){var m=document.getElementById('msg');m.textContent=t;m.className=c||'';}
  function install(){
-   var url=document.getElementById('url').value, token=document.getElementById('token').value;
+   var url=document.getElementById('url').value.trim(), token=document.getElementById('token').value;
+   if(url.indexOf('docs.google.com/spreadsheets')!==-1){
+     msg('That looks like a Google Sheet link, not the Dashboard URL.\\n\\nYou need the Web app URL (ending in /exec).\\nIn Apps Script: Deploy \\u2192 Manage deployments \\u2192 copy the /exec URL.','err');
+     return;
+   }
    document.getElementById('go').disabled=true; msg('Validating and installing...');
    fetch('/install',{method:'POST',headers:{'Content-Type':'application/json'},
      body:JSON.stringify({url:url,token:token})})
