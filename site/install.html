@@ -100,9 +100,9 @@
       </span>
     </div>
 
-    <div class="screenshot" style="margin-top: 16px;">
-      Screenshot: Apps Script deployment dialog — showing where to copy the /exec URL
-    </div>
+    <figure class="screenshot screenshot--dialog" style="margin-top: 16px;">
+      <img src="screenshot - deploy.png" alt="Apps Script new deployment dialog — web app with /exec URL">
+    </figure>
   </div>
 
   <!-- Part 2: Agent -->
@@ -118,17 +118,21 @@
       the <a href="https://github.com/arno-vanwouwe/ludex/releases" target="_blank">releases page</a>:
     </p>
     <ul>
-      <li><strong>macOS</strong> — <code>ludex-macos-arm64.tar.gz</code></li>
-      <li><strong>Linux</strong> — <code>ludex-linux-x86_64.tar.gz</code></li>
-      <li><strong>Linux</strong> — <code>ludex-windows-x86_64.tar.gz</code></li>
+      <li><strong>macOS (Apple Silicon)</strong> — <code>ludex-macos-arm64.zip</code> — contains <code>Ludex.app</code></li>
+      <li><strong>Linux</strong> — <code>ludex-linux-x86_64.tar.gz</code> — contains a <code>ludex</code> binary</li>
     </ul>
-    <p>Extract the archive. You'll find a single <code>ludex</code> binary inside.</p>
+    <p>Extract the archive.</p>
   </div>
 
   <div class="step-block">
     <div class="step-title"><span class="step-n">2</span> Run the installer</div>
-    <p>Double-click the <code>ludex</code> binary (or run it from a terminal). A browser window opens:</p>
-    <div class="screenshot" style="margin: 12px 0;">
+    <p>
+      <strong>macOS:</strong> right-click <code>Ludex.app</code> → <strong>Open</strong> (first time only — macOS requires this to run an app from an independent developer).
+      After that, double-clicking works normally.<br>
+      <strong>Linux:</strong> run <code>./ludex install</code> from a terminal.
+    </p>
+    <p>A browser window opens:</p>
+    <div class="screenshot-placeholder" style="margin: 12px 0;">
       Screenshot: Ludex installer form in the browser
     </div>
     <p>Enter:</p>

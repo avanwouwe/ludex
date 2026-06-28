@@ -152,8 +152,33 @@ h2 {
   flex-shrink: 0; margin-top: 1px;
 }
 
-/* ── Screenshot placeholder ── */
+/* ── Screenshots ── */
 .screenshot {
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.07), 0 1px 3px rgba(0,0,0,0.05);
+  line-height: 0;   /* removes the inline gap below images */
+  margin: 0;
+}
+.screenshot img {
+  width: 100%; height: auto; display: block;
+}
+/* Dialog screenshots: float the image on a neutral desktop-like surface */
+.screenshot--dialog {
+  padding: 20px;
+  background: #f1f3f4;
+  line-height: 1;
+}
+.screenshot--dialog img {
+  width: auto; max-width: 100%;
+  border-radius: 8px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.15);
+  display: block; margin: 0 auto;
+}
+/* Text-only placeholder (no image yet) */
+.screenshot-placeholder {
   background: var(--bg-alt); border: 2px dashed var(--border);
   border-radius: var(--radius); aspect-ratio: 16/10;
   display: flex; align-items: center; justify-content: center;
