@@ -47,14 +47,17 @@ function rollupOldActivityLog_() {
   // 2. merge aggregates into the archive (sum into existing day rows, else append)
   var arcT = table_(ARCHIVE);
   var existing = {};
-  arcT.rows().forEach(function (a) { existing[a.date + "|" + a.user_id + "|" + a.activity_id] = a; });
+  arcT.rows().forEach(function (a) {
+    var d = _toDateKey_(a.date, tz);
+    if (d) existing[d + "|" + a.user_id + "|" + a.activity_id] = a;
+  });
   Object.keys(agg).forEach(function (key) {
     var row = existing[key];
     if (row) {
       arcT.update(row, { seconds: (Number(row.seconds) || 0) + agg[key] });
     } else {
       var p = key.split("|");
-      arcT.append({ date: p[0], user_id: p[1], activity_id: p[2], seconds: agg[key] });
+      arcT.append({ date: new Date(p[0] + "T00:00:00"), user_id: p[1], activity_id: p[2], seconds: agg[key] });
     }
   });
 

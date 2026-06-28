@@ -335,6 +335,17 @@ function requireFields_(p, fields) {
   });
 }
 
+// Normalise a date value from a sheet cell to a yyyy-MM-dd string.
+// Cells formatted as dates come back as JS Date objects; text cells come back as strings.
+function _toDateKey_(val, tz) {
+  if (!val) return null;
+  if (val instanceof Date) return Utilities.formatDate(val, tz, "yyyy-MM-dd");
+  var s = String(val).trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  var d = new Date(s);
+  return isNaN(d.getTime()) ? null : Utilities.formatDate(d, tz, "yyyy-MM-dd");
+}
+
 function truthy_(v) {
   if (typeof v === "boolean") return v;
   var s = String(v).toLowerCase().trim();

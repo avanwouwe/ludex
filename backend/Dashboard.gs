@@ -85,9 +85,11 @@ function buildDashboard_() {
   // (a) seed from the rolled-up archive (older days, already aggregated)
   table_(ARCHIVE).rows().forEach(function (a) {
     if (!a.date || !a.activity_id) return;
+    var d = _toDateKey_(a.date, tz);
+    if (!d) return;
     var who = labels[a.user_id] || a.user_id;
-    var key = a.date + "|" + who + "|" + a.activity_id;
-    if (!agg[key]) agg[key] = { date: a.date, user: who, activity: a.activity_id, seconds: 0 };
+    var key = d + "|" + who + "|" + a.activity_id;
+    if (!agg[key]) agg[key] = { date: d, user: who, activity: a.activity_id, seconds: 0 };
     agg[key].seconds += Number(a.seconds) || 0;
   });
 

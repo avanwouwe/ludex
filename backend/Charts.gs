@@ -33,7 +33,9 @@ function _usagePivot_(user_id, tz) {
     activitySet[aid] = true;
   }
   table_(ARCHIVE).rows().forEach(function (a) {
-    if (a.user_id === user_id && a.date && a.activity_id) add(a.date, a.activity_id, Number(a.seconds) || 0);
+    if (a.user_id !== user_id || !a.date || !a.activity_id) return;
+    var d = _toDateKey_(a.date, tz);
+    if (d) add(d, a.activity_id, Number(a.seconds) || 0);
   });
   table_(SHEETS.activity_log).rows().forEach(function (r) {
     if (r.user_id !== user_id || !r.activity_id) return;
