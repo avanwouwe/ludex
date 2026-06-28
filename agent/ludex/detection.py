@@ -89,7 +89,7 @@ def detect(activities: List[ActivityType], cpu_interval: float = 1.0) -> Dict[st
     return hits
 
 
-def list_active_candidates(cpu_interval: float = 0.2, min_cpu: float = 1.0) -> List[dict]:
+def list_active_candidates(cpu_interval: float = 0.1, min_cpu: float = 1.0) -> List[dict]:
     """Currently CPU-using processes, ranked by CPU% — candidates for detect-app."""
     procs = _sample_cpu(cpu_interval)
     # Get CPU values for all first (fast — already primed), then read attrs only for

@@ -23,6 +23,9 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 # Last time the browser sent /ping. None until the first ping arrives.
 _last_ping: list = [None]  # mutable box; written from handler threads, read by watcher
 
+# Cache for process list to avoid expensive repeated scans on Linux.
+_process_cache: dict = {"data": None, "timestamp": 0}
+
 
 def _start_ping_watcher(server: ThreadingHTTPServer, grace: float = 30.0, timeout: float = 20.0) -> None:
     """Shut the server down if the browser stops pinging.
@@ -399,7 +402,14 @@ class _Handler(BaseHTTPRequestHandler):
     def _handle_processes(self):
         from .detection import list_active_candidates
         try:
-            rows = list_active_candidates()
+            now = time.monotonic()
+            # Cache for 1 second to avoid repeated expensive scans (especially on Linux)
+            if _process_cache["data"] is not None and now - _process_cache["timestamp"] < 1.0:
+                rows = _process_cache["data"]
+            else:
+                rows = list_active_candidates()
+                _process_cache["data"] = rows
+                _process_cache["timestamp"] = now
             self._json(200, {"ok": True, "processes": rows[:30]})
         except Exception as e:
             self._json(200, {"ok": False, "error": str(e)})

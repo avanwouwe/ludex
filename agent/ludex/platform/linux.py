@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+import errno
 import os
 import shutil
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 from .base import Platform
@@ -61,11 +63,19 @@ class LinuxPlatform(Platform):
         target.parent.mkdir(parents=True, exist_ok=True)
         if src != (target.resolve() if target.exists() else target):
             # Write to a temp file then atomically rename into place.
-            # A direct overwrite raises ETXTBSY while the binary is running.
+            # Retry on ETXTBSY (running agent has file open) — service stop above should help.
             tmp = target.parent / (target.name + ".new")
             shutil.copy2(src, tmp)
             tmp.chmod(tmp.stat().st_mode | 0o755)
-            tmp.rename(target)
+            for attempt in range(3):
+                try:
+                    tmp.rename(target)
+                    break
+                except OSError as e:
+                    if e.errno == errno.ETXTBSY and attempt < 2:
+                        time.sleep(0.5)
+                    else:
+                        raise
         return target
 
     def _exec_command(self, binary: Path) -> str:
@@ -79,8 +89,11 @@ class LinuxPlatform(Platform):
         return base / "systemd" / "user" / _SERVICE_NAME
 
     def install_service(self, backend_url: str, token: str) -> str:
-        binary = self._install_binary()
         unit = self._unit_path()
+        # Stop the service before installing the binary to avoid "Text file busy" on updates.
+        subprocess.run(["systemctl", "--user", "stop", _SERVICE_NAME], check=False)
+
+        binary = self._install_binary()
         unit.parent.mkdir(parents=True, exist_ok=True)
         unit.write_text(
             "[Unit]\n"
