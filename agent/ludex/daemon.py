@@ -36,8 +36,10 @@ def _parse_types(activity_types: List[dict], os_key: str) -> Dict[str, ActivityT
         if not aid:
             continue
         try:
-            out[aid] = parse_definition(aid, t.get("definition", ""),
-                                        enabled=t.get("enabled", True), os_key=os_key)
+            at = parse_definition(aid, t.get("definition", ""),
+                                  enabled=t.get("enabled", True), os_key=os_key)
+            at.name = t.get("name", "") or ""
+            out[aid] = at
         except Exception as e:
             log.warning("skipping activity '%s': %s", aid, e)
     return out

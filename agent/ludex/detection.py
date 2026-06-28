@@ -66,7 +66,7 @@ def detect(activities: List[ActivityType], cpu_interval: float = 1.0) -> Dict[st
     return hits
 
 
-def list_active_candidates(cpu_interval: float = 1.0, min_cpu: float = 1.0) -> List[dict]:
+def list_active_candidates(cpu_interval: float = 0.2, min_cpu: float = 1.0) -> List[dict]:
     """Currently CPU-using processes, ranked by CPU% — candidates for --detect-app."""
     procs = _sample_cpu(cpu_interval)
     rows = []
@@ -83,12 +83,48 @@ def list_active_candidates(cpu_interval: float = 1.0, min_cpu: float = 1.0) -> L
     return sorted(rows, key=lambda r: r["cpu"], reverse=True)
 
 
+def _cmdline_token(cmdline: str, name: str) -> str:
+    """Extract the most distinctive token from a generic runtime's cmdline.
+
+    For runtimes like java/python/node, the useful part is the jar name, main
+    class, or script — the FIRST non-flag, non-path argument after the runtime.
+    Game/app arguments that follow the main class are ignored.
+    Falls back to the runtime name if nothing better is found.
+    """
+    parts = cmdline.split()
+    if not parts:
+        return name
+
+    # java -jar foo.jar → take the jar filename
+    for i, p in enumerate(parts):
+        if p == "-jar" and i + 1 < len(parts):
+            jar = parts[i + 1].split("/")[-1].split("\\")[-1]
+            return jar or name
+
+    # Otherwise: first non-flag, non-absolute-path argument after the runtime.
+    # Absolute paths are usually classpath entries; the main class/script comes
+    # after them and contains dots or is a filename.
+    for p in parts[1:]:          # skip the runtime binary itself
+        if p.startswith("-"):    # JVM/interpreter flag
+            continue
+        if p.startswith("/") or p.startswith("\\"):  # absolute classpath entry
+            continue
+        if "=" in p:             # -Dkey=value style (not always prefixed with -)
+            continue
+        token = p.split("/")[-1].split("\\")[-1]
+        if token and len(token) > 2 and name not in token:
+            return token
+
+    return name
+
+
 def build_match_block(attrs: dict) -> dict:
     """A single match block from a selected process's attributes."""
     if attrs["name"] in GENERIC_RUNTIMES:
+        token = _cmdline_token(attrs.get("cmdline", ""), attrs["name"])
         return {
             "name_contains": attrs["name"],
-            "cmdline_contains": ["<EDIT: distinctive token from cmdline>"],
+            "cmdline_contains": token,
         }
     return {"name_contains": attrs["name"]}
 

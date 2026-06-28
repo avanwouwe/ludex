@@ -38,6 +38,7 @@ class ActivityType:
     """A defined activity: detection rules + optional limits."""
 
     activity_id: str
+    name: str = ""
     match_any: List[dict] = field(default_factory=list)
     min_cpu_percent: float = 0.0
     limits: Limits = field(default_factory=Limits)

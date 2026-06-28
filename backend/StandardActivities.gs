@@ -27,8 +27,6 @@ var STANDARD_ACTIVITIES = [
     definition: { match_any: [{ name_contains: "roblox" }], min_cpu_percent: 3, limits: { daily_max_minutes: 90, warn_before_minutes: 10 } } },
   { activity_id: "fortnite", name: "Fortnite",
     definition: { match_any: [{ name_contains: "fortnite" }], min_cpu_percent: 5, limits: { daily_max_minutes: 90, warn_before_minutes: 10 } } },
-  { activity_id: "steam-games", name: "Steam games",
-    definition: { match_any: [{ name_contains: "steam" }], min_cpu_percent: 5, limits: { daily_max_minutes: 120, warn_before_minutes: 10 } } },
   { activity_id: "discord", name: "Discord",
     definition: { match_any: [{ name_contains: "discord" }], min_cpu_percent: 1, limits: { daily_max_minutes: 120, warn_before_minutes: 15 } } },
   { activity_id: "league-of-legends", name: "League of Legends",

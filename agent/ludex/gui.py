@@ -83,7 +83,8 @@ var S={
   procs:[],sel:null,scanning:false,
   topMsg:'',topOk:false,
   dMsg:'',dOk:false,
-  iMsg:'',iOk:false
+  iMsg:'',iOk:false,
+  uMsg:'',uOk:false,updating:false
 };
 
 function el(id){return document.getElementById(id);}
@@ -111,7 +112,7 @@ function renderInstall(a){
     '</label>'+
     '<input id="iUrl" type="url" placeholder="https://script.google.com/…/exec" autocomplete="off">'+
     '<label>Shared key</label>'+
-    '<input id="iTok" type="password" autocomplete="off">'+
+    '<input id="iTok" type="password" autocomplete="new-password">'+
     '<div class="row">'+
     '  <button class="btn prim" id="iBtn" onclick="doInstall()">Install</button>'+
     '</div>'+
@@ -150,13 +151,21 @@ function renderManage(a){
     h+='<label>Activity name</label>'+
        '<input id="aName" type="text" placeholder="e.g. League of Legends" autocomplete="off">'+
        '<label>Admin password</label>'+
-       '<input id="aPwd" type="password" autocomplete="off">'+
+       '<input id="aPwd" type="password" autocomplete="new-password">'+
        '<div class="row">'+
        '  <button class="btn prim" id="dBtn" onclick="doDetect()">Add activity</button>'+
        '</div>';
   }
 
   h+=mkMsg(S.dMsg,S.dOk);
+
+  // ── Update ──────────────────────────────────────────────────────────────────
+  h+='<hr><h2>Update agent</h2>'+
+     '<p>Reinstall the agent binary and restart the service, keeping existing credentials.</p>'+
+     '<button class="btn prim" id="uBtn" onclick="doUpdate()"'+(S.updating?' disabled':'')+'>'+
+     (S.updating?'Updating…':'Update agent')+
+     '</button>'+
+     mkMsg(S.uMsg,S.uOk);
 
   // ── Uninstall ───────────────────────────────────────────────────────────────
   h+='<hr><h2>Uninstall</h2>'+
@@ -225,6 +234,16 @@ function doDetect(){
     S.dMsg=d.ok?d.message:(d.error||'Failed.');
     S.dOk=!!d.ok;
     if(d.ok){S.sel=null;S.procs=[];}
+    render();
+  });
+}
+
+function doUpdate(){
+  S.updating=true;S.uMsg='';render();
+  post('/update',{},function(d){
+    S.updating=false;
+    S.uMsg=d.ok?d.message:(d.error||'Update failed.');
+    S.uOk=!!d.ok;
     render();
   });
 }
@@ -309,6 +328,8 @@ class _Handler(BaseHTTPRequestHandler):
             self._handle_install(data)
         elif self.path == "/detect":
             self._handle_detect(data)
+        elif self.path == "/update":
+            self._handle_update()
         elif self.path == "/uninstall":
             self._handle_uninstall()
         elif self.path == "/quit":
@@ -411,6 +432,20 @@ class _Handler(BaseHTTPRequestHandler):
         else:
             self._json(200, {"ok": False, "error": f"Backend rejected: {res.error}"})
 
+    def _handle_update(self):
+        from .platform import get_platform
+        cfg = get_platform().installed_config()
+        if not cfg:
+            self._json(200, {"ok": False, "error": "Not installed — use Install instead."})
+            return
+        try:
+            msg = validate_and_install(cfg["backend_url"], cfg["token"])
+            self._json(200, {"ok": True, "message": msg})
+        except (ValueError, BackendError) as e:
+            self._json(200, {"ok": False, "error": str(e)})
+        except Exception as e:
+            self._json(200, {"ok": False, "error": str(e)})
+
     def _handle_uninstall(self):
         from .platform import get_platform
         try:
@@ -432,6 +467,7 @@ class _Handler(BaseHTTPRequestHandler):
 
 def _build_server():
     server = ThreadingHTTPServer(("127.0.0.1", 0), _Handler)
+    server.daemon_threads = True  # don't let lingering handler threads block shutdown
     _Handler.server_ref = server
     return server
 
