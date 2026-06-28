@@ -39,7 +39,7 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
-      - name: Build single-file binary
+      - name: Build agent
         working-directory: agent
         run: |
           python -m pip install --upgrade pip
@@ -50,10 +50,10 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
         run: |
-          # Ship inside an archive so the executable bit survives download (a raw binary loses it).
           if [ "${{ runner.os }}" = "macOS" ]; then
+            # .app is a directory; zip -r preserves the bundle structure and executable bits.
             ASSET="ludex-${{ matrix.label }}.zip"
-            (cd agent/dist && zip -q "../../$ASSET" ludex)
+            (cd agent/dist && zip -qr "../../$ASSET" Ludex.app)
           else
             ASSET="ludex-${{ matrix.label }}.tar.gz"
             tar -czf "$ASSET" -C agent/dist ludex

@@ -101,6 +101,23 @@ class LinuxPlatform(Platform):
         subprocess.run(["loginctl", "enable-linger", os.environ.get("USER", "")], check=False)
         return f"installed binary at {binary}, systemd user service at {unit}"
 
+    def installed_config(self) -> dict | None:
+        path = self._unit_path()
+        if not path.exists():
+            return None
+        try:
+            url, token = "", ""
+            for line in path.read_text().splitlines():
+                if line.startswith('Environment="LUDEX_BACKEND_URL='):
+                    url = line.split("=", 2)[2].rstrip('"')
+                elif line.startswith('Environment="LUDEX_TOKEN='):
+                    token = line.split("=", 2)[2].rstrip('"')
+            if url and token:
+                return {"backend_url": url, "token": token}
+        except Exception:
+            pass
+        return None
+
     def uninstall_service(self) -> str:
         subprocess.run(["systemctl", "--user", "disable", "--now", _SERVICE_NAME], check=False)
         unit = self._unit_path()
@@ -109,4 +126,8 @@ class LinuxPlatform(Platform):
         except FileNotFoundError:
             pass
         subprocess.run(["systemctl", "--user", "daemon-reload"], check=False)
-        return f"removed systemd user service {unit}"
+        try:
+            _INSTALL_PATH.unlink()
+        except FileNotFoundError:
+            pass
+        return f"removed systemd user service {unit} and binary {_INSTALL_PATH}"

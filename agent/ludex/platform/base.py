@@ -33,3 +33,7 @@ class Platform(abc.ABC):
     @abc.abstractmethod
     def uninstall_service(self) -> str:
         """Remove the service registration."""
+
+    def installed_config(self) -> "dict | None":
+        """Return {backend_url, token} if the service is installed, else None."""
+        return None

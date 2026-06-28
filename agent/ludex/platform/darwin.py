@@ -9,7 +9,9 @@ import subprocess
 import sys
 from pathlib import Path
 
-_INSTALL_PATH = Path.home() / ".local" / "bin" / "ludex"
+# The entire .app bundle is installed here; launchd points at the binary inside it.
+_APP_INSTALL_PATH = Path.home() / "Applications" / "Ludex.app"
+_APP_BINARY = _APP_INSTALL_PATH / "Contents" / "MacOS" / "Ludex"
 
 from .base import Platform
 
@@ -72,16 +74,18 @@ class DarwinPlatform(Platform):
         raise RuntimeError(f"shutdown failed: {(proc.stderr or proc.stdout).strip()}")
 
     def _install_binary(self) -> Path:
-        """Copy the frozen binary to a stable location; return the path to use in the service."""
+        """Copy Ludex.app to ~/Applications; return the executable path inside for launchd."""
         if not getattr(sys, "frozen", False):
             return Path(sys.executable)  # dev mode — don't copy
-        src = Path(sys.executable).resolve()
-        target = _INSTALL_PATH
-        if src != target.resolve() if target.exists() else src != target:
-            target.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(src, target)
-            target.chmod(target.stat().st_mode | 0o755)
-        return target
+        # sys.executable = .../Ludex.app/Contents/MacOS/Ludex — three levels up is the bundle.
+        src_bundle = Path(sys.executable).resolve().parent.parent.parent
+        dst_bundle = _APP_INSTALL_PATH
+        if src_bundle.resolve() != dst_bundle.resolve():
+            if dst_bundle.exists():
+                shutil.rmtree(dst_bundle)
+            dst_bundle.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copytree(src_bundle, dst_bundle)
+        return _APP_BINARY
 
     def _program_args(self, binary: Path) -> list:
         if getattr(sys, "frozen", False):
@@ -114,6 +118,22 @@ class DarwinPlatform(Platform):
         subprocess.run(["launchctl", "load", "-w", str(path)], check=False)
         return f"installed binary at {binary}, LaunchAgent at {path}"
 
+    def installed_config(self) -> dict | None:
+        path = self._plist_path()
+        if not path.exists():
+            return None
+        try:
+            with open(path, "rb") as f:
+                data = plistlib.load(f)
+            env = data.get("EnvironmentVariables", {})
+            url = env.get("LUDEX_BACKEND_URL", "")
+            token = env.get("LUDEX_TOKEN", "")
+            if url and token:
+                return {"backend_url": url, "token": token}
+        except Exception:
+            pass
+        return None
+
     def uninstall_service(self) -> str:
         path = self._plist_path()
         subprocess.run(["launchctl", "unload", "-w", str(path)], check=False,
@@ -122,4 +142,6 @@ class DarwinPlatform(Platform):
             path.unlink()
         except FileNotFoundError:
             pass
-        return f"removed LaunchAgent {path}"
+        if _APP_INSTALL_PATH.exists():
+            shutil.rmtree(_APP_INSTALL_PATH)
+        return f"removed LaunchAgent {path} and {_APP_INSTALL_PATH}"

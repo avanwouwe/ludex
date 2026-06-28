@@ -75,9 +75,12 @@ class State:
     # ----- period flush -----
     def flush_period(self) -> Optional[dict]:
         """Return a PutActivityLog payload for the open period, then start a fresh one."""
-        if self.period_seconds <= 0 and not self.period_activity_seconds:
-            # still advance the window so the next period starts now
+        if self.period_seconds <= 0:
+            # Nothing to report (e.g. first tick after the timing fix where elapsed=0).
+            # Advance the window so the next period starts now; discard any zero-second
+            # activity entries that accumulated on the first tick.
             self.period_start = datetime.now(timezone.utc)
+            self.period_activity_seconds = {}
             return None
         now = datetime.now(timezone.utc)
         payload = {
@@ -87,6 +90,7 @@ class State:
             "activities": [
                 {"activity_id": aid, "seconds": int(round(secs))}
                 for aid, secs in self.period_activity_seconds.items()
+                if secs > 0
             ],
         }
         self.period_start = now

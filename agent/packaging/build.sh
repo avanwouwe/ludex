@@ -1,29 +1,39 @@
 #!/usr/bin/env bash
-# Build the Ludex agent as a single self-contained binary.
+# Build the Ludex agent.
 #
-#   agent/.venv/bin/pip install -e '.[build]'   # one-time: installs pyinstaller
-#   agent/packaging/build.sh                     # produces agent/dist/ludex
+# Prerequisites (one-time):
+#   agent/.venv/bin/pip install -e '.[build]'
 #
-# Run on each target OS to produce that platform's binary (PyInstaller does not
-# cross-compile). The resulting binary bundles Python + psutil/requests/yaml, so the
-# endpoint needs no Python runtime. It is its own installer: `./ludex install`.
+# macOS  → dist/Ludex.app   (via ludex.spec, which adds the BUNDLE step and LSUIElement)
+# Linux  → dist/ludex        (single-file binary via --onefile)
+#
+# Run on each target OS — PyInstaller does not cross-compile.
+# The resulting binary/bundle bundles Python + psutil/requests/yaml;
+# no Python runtime is needed on the endpoint.  Run `./ludex install` (Linux)
+# or double-click / right-click → Open (macOS) to install.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."   # -> agent/
 
-# Prefer the venv's pyinstaller if present, else whatever is on PATH.
 PYINSTALLER="./.venv/bin/pyinstaller"
 [ -x "$PYINSTALLER" ] || PYINSTALLER="pyinstaller"
 
-"$PYINSTALLER" \
-  --onefile \
-  --clean \
-  --noconfirm \
-  --name ludex \
-  --paths . \
-  --hidden-import ludex.platform.linux \
-  --hidden-import ludex.platform.darwin \
-  packaging/ludex_entry.py
-
-echo
-echo "Built: $(pwd)/dist/ludex"
+if [[ "$(uname)" == "Darwin" ]]; then
+  # Use the spec file so the BUNDLE step and Info.plist are applied correctly.
+  # ludex-mac.spec is version-controlled; ludex.spec is gitignored (Linux auto-generates it).
+  "$PYINSTALLER" --clean --noconfirm ludex-mac.spec
+  echo
+  echo "Built: $(pwd)/dist/Ludex.app"
+else
+  "$PYINSTALLER" \
+    --onefile \
+    --clean \
+    --noconfirm \
+    --name ludex \
+    --paths . \
+    --hidden-import ludex.platform.linux \
+    --hidden-import ludex.platform.darwin \
+    packaging/ludex_entry.py
+  echo
+  echo "Built: $(pwd)/dist/ludex"
+fi
