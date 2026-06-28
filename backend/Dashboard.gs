@@ -9,7 +9,8 @@
 
 var DASHBOARD_SHEET = "dashboard";
 // optional friendly names + alert recipients (email may be comma/semicolon-separated for several)
-var PEOPLE = { name: "people", headers: ["user_id", "name", "email"] };
+// daily_max_minutes / warn_before_minutes: global daily screen-time limit per child.
+var PEOPLE = { name: "people", headers: ["user_id", "name", "email", "daily_max_minutes", "warn_before_minutes"] };
 
 function ludexRefreshDashboard() {
   buildDashboard_();
@@ -55,18 +56,15 @@ function _activityNames_() {
   return m;
 }
 
-// activity_id -> { daily_max, warn_before } parsed from each activity's definition limits.
+// activity_id -> { daily_max, warn_before } from the flat activity_types columns.
 function _activityLimits_() {
   var out = {};
   table_(SHEETS.activity_types).rows().forEach(function (r) {
     if (!r.activity_id) return;
-    try {
-      var lim = (JSON.parse(r.definition || "{}").limits) || {};
-      out[r.activity_id] = {
-        daily_max: Number(lim.daily_max_minutes) || 0,
-        warn_before: Number(lim.warn_before_minutes) || 0
-      };
-    } catch (e) { /* non-JSON definition: no highlight */ }
+    out[r.activity_id] = {
+      daily_max: Number(r.daily_max_minutes) || 0,
+      warn_before: Number(r.warn_before_minutes) || 0
+    };
   });
   return out;
 }
@@ -161,7 +159,7 @@ function applySheetHeaderStyles_() {
   var HEADER_FG = "#ffffff";
   var sheetDefs = [
     { name: "commands",  cols: 8 },
-    { name: "people",    cols: 3 },
+    { name: "people",    cols: 5 },
     { name: "users",     cols: 9 },
     { name: "dashboard", cols: 4 },
     { name: "analysis",  cols: 20 }

@@ -63,15 +63,11 @@ def cmd_uninstall(args):
 
 
 def cmd_detect_app(args):
-    import yaml
     from .config import AgentConfig
-    from .detection import build_definition, build_match_block, list_active_candidates
-    from .platform import get_platform
+    from .detection import list_active_candidates, suggest_keyword
     from .transport import BackendClient
 
-    os_key = get_platform().os_key
-
-    print("Sampling active processes (1s)...")
+    print("Sampling active processes…")
     rows = list_active_candidates(min_cpu=args.min_cpu)
     if not rows:
         sys.exit("no active processes found above the CPU threshold")
@@ -90,51 +86,27 @@ def cmd_detect_app(args):
         sys.exit("activity name is required")
     activity_id = _slugify(name)
 
-    config = AgentConfig.load(url=args.url, token=args.token)
-    client = BackendClient(config.backend_url, config.token)
+    suggested = suggest_keyword(chosen)
+    keyword = input(f"Keyword [{suggested}]: ").strip() or suggested
+    if not keyword:
+        sys.exit("keyword is required")
 
-    # Merge this platform's rules into an existing activity if one exists, so defining the same
-    # game on a second OS doesn't overwrite the first.
-    existing = None
-    cfg = client.call_one("GetConfig", {})
-    if cfg.ok:
-        for t in cfg.data.get("activity_types", []):
-            if t.get("activity_id") == activity_id:
-                try:
-                    existing = yaml.safe_load(t.get("definition") or "")
-                except Exception:
-                    existing = None
-                break
+    print(f"\nWill register: keyword='{keyword}' matched case-insensitively against process name, exe and cmdline.")
 
-    block = build_match_block(chosen)
-    if isinstance(existing, dict):
-        definition = dict(existing)
-        platforms = dict(definition.get("platforms") or {})
-        platforms[os_key] = {"match_any": [block]}
-        definition["platforms"] = platforms
-        definition.pop("match_any", None)  # any legacy flat rule is now superseded by platforms
-        definition.setdefault("min_cpu_percent", 5.0)
-        definition.setdefault("limits", {"daily_max_minutes": 120, "warn_before_minutes": 10})
-        print(f"\nMerging '{os_key}' rules into existing activity '{name}'.")
-    else:
-        definition = build_definition(activity_id, chosen, os_key)
-
-    text = json.dumps(definition)  # stored compact in the sheet cell
-    print("\nDefinition to submit:")
-    print(json.dumps(definition, indent=2))
-    if "<EDIT" in text:
-        print("\nNOTE: this is a generic runtime — edit the cmdline_contains token to a distinctive\n"
-              "      substring before it will match reliably.")
-
-    if input("\nSubmit to backend? [y/N] ").strip().lower() != "y":
+    if input("Submit to backend? [y/N] ").strip().lower() != "y":
         sys.exit("aborted")
 
+    config = AgentConfig.load(url=args.url, token=args.token)
     admin = config.admin_password or getpass.getpass("Admin password: ").strip()
+    client = BackendClient(config.backend_url, config.token)
     res = client.call_one("PutActivityType", {
         "admin_password": admin,
         "activity_id": activity_id,
         "name": name,
-        "definition": text,
+        "keyword": keyword,
+        "min_cpu_percent": 5,
+        "daily_max_minutes": 120,
+        "warn_before_minutes": 10,
         "enabled": True,
     })
     if res.ok:

@@ -54,13 +54,20 @@ Creates the row if `user_id` is unknown, updates it otherwise.
 → `data: { "created": true|false }`
 
 ### `GetConfig` — bootstrap configuration
-No params. Returns global settings and the activity definitions (merges what was originally split as
-`GetActivityTypes`).
+Optional param: `user_id`. Returns global settings, the activity definitions, and (if `user_id` is
+given and the child has limits set in the `people` tab) the per-user daily screen-time limits.
 ```json
-{ "config": { "sample_interval_s": 20, "sync_interval_s": 300,
-              "warn_before_minutes": 10 },
-  "activity_types": [ { "activity_id": "minecraft", "definition": "<json/yaml>", "enabled": true } ] }
+{ "config": { "sample_interval_s": 20, "sync_interval_s": 300 },
+  "activity_types": [
+    { "activity_id": "minecraft", "name": "Minecraft", "keyword": "minecraft",
+      "min_cpu_percent": 5, "daily_max_minutes": 120, "warn_before_minutes": 10,
+      "pause_after_minutes": 45, "pause_duration_minutes": 10, "enabled": true }
+  ],
+  "user_limits": { "daily_max_minutes": 180, "warn_before_minutes": 15 }
+}
 ```
+`user_limits` is `null` when `user_id` is absent or the child has no limits configured.
+The agent passes its `user_id` on every `GetConfig` call so per-user limits are always current.
 
 ### `PutActivityLog` — record a completed period
 ```json
@@ -94,7 +101,8 @@ stored for that `user_id`. Overlap detection makes retries safe.
 ### `PutActivityType` — **admin**: add/replace an activity (used by `--detect-app`)
 ```json
 { "admin_password": "...", "activity_id": "minecraft", "name": "Minecraft",
-  "definition": "<json/yaml>", "enabled": true }
+  "keyword": "minecraft", "min_cpu_percent": 5, "daily_max_minutes": 120,
+  "warn_before_minutes": 10, "enabled": true }
 ```
 → `data: { "created": true|false }`. Rejected if `admin_password` is wrong.
 

@@ -81,16 +81,26 @@ This separation keeps detection accurate while respecting backend quotas.
 
 ## 5. Limits & warnings
 
-Limits are **per activity type** and live in the activity definition (see activity-definitions.md):
+**Per-activity limits** live in the `activity_types` tab:
 
 - `pause_after_minutes` / `pause_duration_minutes` — after Y continuous minutes, a pause of X is due.
 - `daily_max_minutes` — max total for the calendar day (local time).
 - `warn_before_minutes` — warn N minutes before the daily limit is hit.
 
+**Global per-user daily limit** lives in the `people` tab (two columns editable per child):
+
+- `daily_max_minutes` — maximum total screen time across *all* tracked activities.
+- `warn_before_minutes` — warn N minutes before the global limit is hit.
+
+The agent receives the per-user limits via `GetConfig` (with its `user_id`) and evaluates them the
+same way as per-activity limits. The backend also emails the parent once per user/day when the
+global limit is crossed.
+
 Warnings are shown locally when:
 - an activity is **first detected** in a session,
 - a **pause is due**,
-- the **daily limit** is reached, and **N minutes before** it is.
+- a **per-activity daily limit** is reached, and **N minutes before** it is,
+- the **global daily limit** is reached, and **N minutes before** it is.
 
 Warnings use a **modal dialog**, not a Notification Center banner: banners are silenced by Do Not
 Disturb / macOS Game Mode (which auto-engages during full-screen games — exactly when a warning
@@ -132,21 +142,23 @@ it directly (the dashboard is built on these later).
 
 UI-only tabs (not touched by the agent): **`dashboard`** (generated minutes per day/user/activity,
 with rows highlighted red when over an activity's `daily_max_minutes` / amber when within
-`warn_before_minutes`), and **`people`** (optional `user_id` → friendly `name` + alert `email`(s);
-auto-seeded with each user's system username, edited via **Ludex ▸ Edit people**), and **`analysis`**
-(a per-user stacked column chart of daily minutes per activity, built on demand via
-**Ludex ▸ Activity analysis**).
+`warn_before_minutes`), and **`people`** (optional `user_id` → friendly `name` + alert `email`(s)
+plus the global `daily_max_minutes` / `warn_before_minutes` per child; auto-seeded with each user's
+system username, edited via **Ludex ▸ Edit people**), and **`analysis`** (a per-user stacked column
+chart of daily minutes per activity, built on demand via **Ludex ▸ Activity analysis**).
 
 ### Alerts (email)
 
-Two server-side email alerts (require the `script.send_mail` scope; recipients come from the
+Three server-side email alerts (require the `script.send_mail` scope; recipients come from the
 `people` tab's `email` column — comma-separated for several, falling back to all addresses if a
 child has none):
 - **Heartbeat gap** — an hourly trigger emails when a computer hasn't checked in for
-  `offline_alert_days` (default 7). This is the bypass-awareness signal — stopping the agent makes
+  `offline_alert_days` (default 14). This is the bypass-awareness signal — stopping the agent makes
   the device go quiet, which becomes a notification — and needs no privilege.
-- **Daily limit reached** — when a `PutActivityLog` pushes a day's total for an activity over its
-  `daily_max_minutes`, the parent is emailed once for that user/activity/day.
+- **Per-activity daily limit reached** — when a `PutActivityLog` pushes a day's total for an
+  activity over its `daily_max_minutes`, the parent is emailed once for that user/activity/day.
+- **Global daily screen-time limit reached** — when total tracked activity time for the user today
+  crosses `daily_max_minutes` set in the `people` tab, the parent is emailed once per user/day.
 
 ### Log growth & maintenance
 

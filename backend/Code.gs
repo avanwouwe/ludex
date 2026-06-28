@@ -27,16 +27,15 @@ var SHEETS = {
   config:         { name: "config",         headers: ["key", "value"] },
   users:          { name: "users",          headers: ["user_id", "host_id", "hostname", "system_username", "public_ip", "os", "version", "first_seen", "last_seen"] },
   activity_log:   { name: "activity_log",   headers: ["server_time", "user_id", "period_start", "period_end", "period_seconds", "activity_id", "activity_seconds"] },
-  activity_types: { name: "activity_types", headers: ["activity_id", "name", "definition", "enabled"] },
+  activity_types: { name: "activity_types", headers: ["activity_id", "name", "keyword", "min_cpu_percent", "daily_max_minutes", "warn_before_minutes", "pause_after_minutes", "pause_duration_minutes", "enabled"] },
   commands:       { name: "commands",       headers: ["command_id", "user_id", "command_type", "params", "status", "created", "executed", "result"] }
 };
 
 var DEFAULT_CONFIG = {
   sample_interval_s: "20",
   sync_interval_s: "300",
-  warn_before_minutes: "10",
   raw_retention_days: "3",       // raw activity_log rows older than this are rolled into activity_daily
-  offline_alert_days: "7"        // email if a computer hasn't checked in for this many days
+  offline_alert_days: "14"       // email if a computer hasn't checked in for this many days
 };
 
 // ===== HTTP entry points =====
@@ -128,10 +127,30 @@ function GetConfig_(p) {
   var types = table_(SHEETS.activity_types).rows()
     .filter(function (r) { return r.activity_id; })
     .map(function (r) {
-      return { activity_id: r.activity_id, name: r.name || "", definition: r.definition || "", enabled: truthy_(r.enabled) };
+      return {
+        activity_id: r.activity_id,
+        name: r.name || "",
+        keyword: r.keyword || "",
+        min_cpu_percent: _numOrNull_(r.min_cpu_percent),
+        daily_max_minutes: _numOrNull_(r.daily_max_minutes),
+        warn_before_minutes: _numOrNull_(r.warn_before_minutes),
+        pause_after_minutes: _numOrNull_(r.pause_after_minutes),
+        pause_duration_minutes: _numOrNull_(r.pause_duration_minutes),
+        enabled: truthy_(r.enabled),
+      };
     });
 
-  return { config: cfg, activity_types: types };
+  var user_limits = null;
+  if (p.user_id) {
+    var pRow = table_(PEOPLE).findRow("user_id", p.user_id);
+    if (pRow) {
+      user_limits = {
+        daily_max_minutes: _numOrNull_(pRow.daily_max_minutes),
+        warn_before_minutes: _numOrNull_(pRow.warn_before_minutes),
+      };
+    }
+  }
+  return { config: cfg, activity_types: types, user_limits: user_limits };
 }
 
 function PutActivityLog_(p) {
@@ -171,6 +190,8 @@ function PutActivityLog_(p) {
   acts.forEach(function (a) {
     if (a.activity_id) { try { checkLimitExceeded_(p.user_id, a.activity_id, tz); } catch (e) {} }
   });
+  // Check the global daily screen-time limit for this user.
+  if (acts.length > 0) { try { checkGlobalLimitExceeded_(p.user_id, tz); } catch (e) {} }
 
   return { stored: true, rows: Math.max(1, acts.length) };
 }
@@ -214,16 +235,30 @@ function UpdateCommand_(p) {
 
 function PutActivityType_(p) {
   requireAdmin_(p);
-  requireFields_(p, ["activity_id", "definition"]);
+  requireFields_(p, ["activity_id", "keyword"]);
   var t = table_(SHEETS.activity_types);
   var row = t.findRow("activity_id", p.activity_id);
   var enabled = (p.enabled === undefined) ? true : truthy_(p.enabled);
+  function _pick(key, fallback) {
+    return p[key] !== undefined ? p[key] : (row ? (row[key] !== undefined ? row[key] : fallback) : fallback);
+  }
+  var data = {
+    name: _pick("name", ""),
+    keyword: p.keyword || "",
+    min_cpu_percent: _pick("min_cpu_percent", ""),
+    daily_max_minutes: _pick("daily_max_minutes", ""),
+    warn_before_minutes: _pick("warn_before_minutes", ""),
+    pause_after_minutes: _pick("pause_after_minutes", ""),
+    pause_duration_minutes: _pick("pause_duration_minutes", ""),
+    enabled: enabled,
+  };
   if (row) {
-    t.update(row, { definition: p.definition, enabled: enabled,
-                    name: (p.name !== undefined ? p.name : (row.name || "")) });
+    t.update(row, data);
     return { created: false };
   }
-  t.append({ activity_id: p.activity_id, definition: p.definition, enabled: enabled, name: p.name || "" });
+  var newRow = { activity_id: p.activity_id };
+  Object.keys(data).forEach(function (k) { newRow[k] = data[k]; });
+  t.append(newRow);
   return { created: true };
 }
 
@@ -346,6 +381,12 @@ function _toDateKey_(val, tz) {
   return isNaN(d.getTime()) ? null : Utilities.formatDate(d, tz, "yyyy-MM-dd");
 }
 
+function _numOrNull_(v) {
+  if (v === "" || v === null || v === undefined) return null;
+  var n = Number(v);
+  return isNaN(n) ? null : n;
+}
+
 function truthy_(v) {
   if (typeof v === "boolean") return v;
   var s = String(v).toLowerCase().trim();
@@ -357,8 +398,22 @@ function json_(obj) {
 }
 
 // ===== One-time setup: create tabs + seed config defaults =====
+// Safe to re-run: creates missing sheets, updates header rows to match the current schema,
+// and seeds any missing config keys. Data rows are never touched.
 function setup() {
-  Object.keys(SHEETS).forEach(function (k) { table_(SHEETS[k]); });  // ensure each sheet exists
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  Object.keys(SHEETS).forEach(function (k) {
+    var spec = SHEETS[k];
+    var sheet = ss.getSheetByName(spec.name);
+    if (!sheet) {
+      sheet = ss.insertSheet(spec.name);
+    }
+    // Always write the current header row so schema changes take effect on re-run.
+    var needed = spec.headers.length;
+    var cols = sheet.getLastColumn();
+    if (cols < needed) sheet.insertColumnsAfter(Math.max(cols, 1), needed - Math.max(cols, 1));
+    sheet.getRange(1, 1, 1, needed).setValues([spec.headers]);
+  });
   var ct = table_(SHEETS.config);
   var existing = {};
   ct.rows().forEach(function (r) { existing[r.key] = true; });

@@ -10,7 +10,6 @@ from typing import Dict, List
 
 from .commands import CommandContext, execute
 from .config import AgentConfig
-from .definitions import parse_definition
 from .identity import resolve_identity
 from .limits import evaluate
 from .models import ActivityType, Command, GlobalConfig, Identity
@@ -35,13 +34,33 @@ def _parse_types(activity_types: List[dict], os_key: str) -> Dict[str, ActivityT
         aid = t.get("activity_id")
         if not aid:
             continue
-        try:
-            at = parse_definition(aid, t.get("definition", ""),
-                                  enabled=t.get("enabled", True), os_key=os_key)
-            at.name = t.get("name", "") or ""
-            out[aid] = at
-        except Exception as e:
-            log.warning("skipping activity '%s': %s", aid, e)
+        def _int(key, _t=t):
+            v = _t.get(key)
+            if v is None or v == "":
+                return None
+            try:
+                return int(float(str(v)))
+            except (TypeError, ValueError):
+                return None
+        def _float(key, default=0.0, _t=t):
+            v = _t.get(key)
+            if v is None or v == "":
+                return default
+            try:
+                return float(str(v))
+            except (TypeError, ValueError):
+                return default
+        out[aid] = ActivityType(
+            activity_id=aid,
+            name=t.get("name", "") or "",
+            keyword=t.get("keyword", "") or "",
+            min_cpu_percent=_float("min_cpu_percent"),
+            daily_max_minutes=_int("daily_max_minutes"),
+            warn_before_minutes=_int("warn_before_minutes"),
+            pause_after_minutes=_int("pause_after_minutes"),
+            pause_duration_minutes=_int("pause_duration_minutes"),
+            enabled=bool(t.get("enabled", True)),
+        )
     return out
 
 
@@ -79,9 +98,9 @@ class Daemon:
         self.identity = resolve_identity()
         log.info("identity: user_id=%s host=%s", self.identity.user_id, self.identity.hostname)
 
-        cfg = self.client.call_one("GetConfig", {})
+        cfg = self.client.call_one("GetConfig", {"user_id": self.identity.user_id})
         if cfg.ok:
-            self.gconfig = GlobalConfig.from_dict(cfg.data.get("config"))
+            self.gconfig = GlobalConfig.from_dict(cfg.data.get("config"), cfg.data.get("user_limits"))
             self.activities = _parse_types(cfg.data.get("activity_types", []), self.platform.os_key)
         else:
             log.error("GetConfig failed: %s", cfg.error)
@@ -160,7 +179,7 @@ class Daemon:
             elapsed = min(now - self._last_tick, self.gconfig.sample_interval_s * 2)
         self._last_tick = now
 
-        warnings = evaluate(self.state, self.activities, active_ids)
+        warnings = evaluate(self.state, self.activities, active_ids, self.gconfig)
         self.state.record_sample(active_ids, elapsed)
         for w in warnings:
             log.info("warn[%s] %s", w.kind, w.message)
@@ -177,7 +196,7 @@ class Daemon:
             payload["user_id"] = self.identity.user_id
             calls.append(("log", "PutActivityLog", payload))
         calls.append(("cmds", "GetCommands", {"user_id": self.identity.user_id}))
-        calls.append(("cfg", "GetConfig", {}))
+        calls.append(("cfg", "GetConfig", {"user_id": self.identity.user_id}))
 
         try:
             results = self.client.call_batch(calls)
@@ -190,7 +209,7 @@ class Daemon:
 
         cfg = results.get("cfg")
         if cfg and cfg.ok:
-            self.gconfig = GlobalConfig.from_dict(cfg.data.get("config"))
+            self.gconfig = GlobalConfig.from_dict(cfg.data.get("config"), cfg.data.get("user_limits"))
             self.activities = _parse_types(cfg.data.get("activity_types", []), self.platform.os_key)
             self._apply_overrides()
         cmds_res = results.get("cmds")

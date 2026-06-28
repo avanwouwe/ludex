@@ -93,6 +93,38 @@ function checkLimitExceeded_(user_id, activity_id, tz) {
   }
 }
 
+// Called from PutActivityLog_ after storing: alert once when the global daily screen-time limit
+// (set per-person in the people tab) is crossed.
+function checkGlobalLimitExceeded_(user_id, tz) {
+  var pRow = table_(PEOPLE).findRow("user_id", user_id);
+  if (!pRow) return;
+  var daily_max = _numOrNull_(pRow.daily_max_minutes);
+  if (!daily_max) return;
+
+  var today = Utilities.formatDate(new Date(), tz, "yyyy-MM-dd");
+
+  // Sum all tracked activity seconds for this user today.
+  var total = 0;
+  table_(SHEETS.activity_log).rows().forEach(function (r) {
+    if (r.user_id !== user_id || !r.activity_id) return;
+    var d;
+    try { d = Utilities.formatDate(new Date(r.period_start), tz, "yyyy-MM-dd"); } catch (e) { return; }
+    if (d === today) total += Number(r.activity_seconds) || 0;
+  });
+  if (total / 60 < daily_max) return;
+
+  var props = PropertiesService.getScriptProperties();
+  var key = "global_limit_alerted:" + user_id + ":" + today;
+  if (props.getProperty(key)) return;
+
+  var who = _userLabels_()[user_id] || user_id;
+  if (sendAlert_(user_id,
+        "Ludex: daily screen time limit reached for " + who,
+        who + " has reached the daily screen time limit (" + daily_max + " min today across all tracked activities).")) {
+    props.setProperty(key, "1");
+  }
+}
+
 // Schedule the hourly heartbeat check (idempotent). Called on first install.
 function enableHeartbeat_() {
   ScriptApp.getProjectTriggers().forEach(function (t) {

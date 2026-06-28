@@ -150,6 +150,8 @@ function renderManage(a){
   if(S.sel!==null){
     h+='<label>Activity name</label>'+
        '<input id="aName" type="text" placeholder="e.g. League of Legends" autocomplete="off">'+
+       '<label>Keyword <span class="hint">(substring matched against process name, path and command line — case-insensitive, ignores spaces/dots/dashes)</span></label>'+
+       '<input id="aKey" type="text" placeholder="e.g. minecraft" autocomplete="off">'+
        '<label>Admin password</label>'+
        '<input id="aPwd" type="password" autocomplete="new-password">'+
        '<div class="row">'+
@@ -184,6 +186,10 @@ function pick(i){
   S.sel=(S.sel===i?null:i);
   S.dMsg='';S.dOk=false;
   render();
+  // pre-fill keyword with the server-provided suggestion for this process
+  if(S.sel!==null&&el('aKey')){
+    el('aKey').value=S.procs[S.sel].keyword||S.procs[S.sel].name||'';
+  }
 }
 
 function post(url,data,cb){
@@ -226,11 +232,13 @@ function doScan(){
 
 function doDetect(){
   var nm=(el('aName')?el('aName').value.trim():'');
+  var kw=(el('aKey')?el('aKey').value.trim():'');
   var pw=(el('aPwd')?el('aPwd').value.trim():'');
   if(!nm){S.dMsg='Activity name is required.';S.dOk=false;render();return;}
+  if(!kw){S.dMsg='Keyword is required.';S.dOk=false;render();return;}
   if(!pw){S.dMsg='Admin password is required.';S.dOk=false;render();return;}
   if(el('dBtn'))el('dBtn').disabled=true;
-  post('/detect',{name:nm,admin_password:pw,process:S.procs[S.sel]},function(d){
+  post('/detect',{name:nm,keyword:kw,admin_password:pw,process:S.procs[S.sel]},function(d){
     S.dMsg=d.ok?d.message:(d.error||'Failed.');
     S.dOk=!!d.ok;
     if(d.ok){S.sel=null;S.procs=[];}
@@ -366,64 +374,38 @@ class _Handler(BaseHTTPRequestHandler):
             self._json(200, {"ok": False, "error": str(e)})
 
     def _handle_detect(self, data: dict):
-        import yaml
-        from .detection import build_definition, build_match_block
         from .platform import get_platform
         from .transport import BackendClient
 
-        platform = get_platform()
-        cfg = platform.installed_config()
+        cfg = get_platform().installed_config()
         if not cfg:
             self._json(200, {"ok": False, "error": "Ludex is not installed."})
             return
 
         name = (data.get("name") or "").strip()
+        keyword = (data.get("keyword") or "").strip()
         admin_password = (data.get("admin_password") or "").strip()
-        process = data.get("process")
 
         if not name:
             self._json(200, {"ok": False, "error": "Activity name is required."})
             return
+        if not keyword:
+            self._json(200, {"ok": False, "error": "Keyword is required."})
+            return
         if not admin_password:
             self._json(200, {"ok": False, "error": "Admin password is required."})
-            return
-        if not isinstance(process, dict):
-            self._json(200, {"ok": False, "error": "No process selected."})
             return
 
         activity_id = _slugify(name)
         client = BackendClient(cfg["backend_url"], cfg["token"])
-
-        # Fetch existing definition for per-platform merging (same logic as CLI detect-app).
-        existing = None
-        res = client.call_one("GetConfig", {})
-        if res.ok:
-            for t in res.data.get("activity_types", []):
-                if t.get("activity_id") == activity_id:
-                    try:
-                        existing = yaml.safe_load(t.get("definition") or "")
-                    except Exception:
-                        pass
-                    break
-
-        os_key = platform.os_key
-        block = build_match_block(process)
-        if isinstance(existing, dict):
-            definition = dict(existing)
-            platforms = dict(definition.get("platforms") or {})
-            platforms[os_key] = {"match_any": [block]}
-            definition["platforms"] = platforms
-            definition.pop("match_any", None)
-            definition.setdefault("min_cpu_percent", 5.0)
-            definition.setdefault("limits", {"daily_max_minutes": 120, "warn_before_minutes": 10})
-        else:
-            definition = build_definition(activity_id, process, os_key)
-
         res = client.call_one("PutActivityType", {
             "admin_password": admin_password,
             "activity_id": activity_id,
             "name": name,
-            "definition": json.dumps(definition),
+            "keyword": keyword,
+            "min_cpu_percent": 5,
+            "daily_max_minutes": 120,
+            "warn_before_minutes": 10,
             "enabled": True,
         })
         if res.ok:
