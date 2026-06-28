@@ -20,6 +20,30 @@ import time
 import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
+# Last time the browser sent /ping. None until the first ping arrives.
+_last_ping: list = [None]  # mutable box; written from handler threads, read by watcher
+
+
+def _start_ping_watcher(server: ThreadingHTTPServer, grace: float = 30.0, timeout: float = 20.0) -> None:
+    """Shut the server down if the browser stops pinging.
+
+    Waits up to `grace` seconds for the first ping (browser may take a moment to open),
+    then shuts down if no ping arrives within `timeout` seconds of the last one.
+    """
+    def _watch():
+        deadline = time.monotonic() + grace
+        while _last_ping[0] is None:
+            if time.monotonic() > deadline:
+                server.shutdown()
+                return
+            time.sleep(2)
+        while True:
+            time.sleep(5)
+            if time.monotonic() - _last_ping[0] > timeout:
+                server.shutdown()
+                return
+    threading.Thread(target=_watch, daemon=True).start()
+
 from .installer import validate_and_install
 from .transport import BackendError
 
@@ -126,7 +150,7 @@ function renderManage(a){
 
   // ── Detect App ─────────────────────────────────────────────────────────────
   h+='<h2>Add tracked activity</h2>'+
-     '<p>Scan running processes and register one as a monitored activity on this computer.</p>'+
+     '<p>Scan running processes and register one as an Activity.</p>'+
      '<button class="btn prim" id="sBtn" onclick="doScan()"'+(S.scanning?' disabled':'')+'>'+
      (S.scanning?'Scanning…':'Scan running processes')+
      '</button>';
@@ -163,7 +187,7 @@ function renderManage(a){
 
   // ── Update ──────────────────────────────────────────────────────────────────
   h+='<hr><h2>Update agent</h2>'+
-     '<p>Reinstall the agent binary and restart the service, keeping existing credentials.</p>'+
+     '<p>Reinstall and restart the agent.</p>'+
      '<button class="btn prim" id="uBtn" onclick="doUpdate()"'+(S.updating?' disabled':'')+'>'+
      (S.updating?'Updating…':'Update agent')+
      '</button>'+
@@ -282,6 +306,10 @@ fetch('/status')
     render();
   })
   .catch(function(){S.view='install';render();});
+
+// Keep the server alive while this tab is open. The server shuts itself down
+// ~20 s after the last ping — i.e. shortly after the tab is closed.
+setInterval(function(){ fetch('/ping').catch(function(){}); }, 3000);
 </script>
 </body></html>
 """
@@ -324,6 +352,9 @@ class _Handler(BaseHTTPRequestHandler):
             self._handle_status()
         elif self.path == "/processes":
             self._handle_processes()
+        elif self.path == "/ping":
+            _last_ping[0] = time.monotonic()
+            self._json(200, {"ok": True})
         else:
             self._json(404, {"error": "not found"})
 
@@ -455,6 +486,7 @@ def _build_server():
 
 
 def run_installer():
+    _last_ping[0] = None  # reset for this session
     server = _build_server()
     url = "http://127.0.0.1:%d/" % server.server_address[1]
     print("Ludex running. If your browser didn't open, go to: " + url)
@@ -462,6 +494,7 @@ def run_installer():
         webbrowser.open(url)
     except Exception:
         pass
+    _start_ping_watcher(server)
     try:
         server.serve_forever()
     except KeyboardInterrupt:

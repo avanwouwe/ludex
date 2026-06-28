@@ -58,10 +58,14 @@ class LinuxPlatform(Platform):
             return Path(sys.executable)  # dev mode — don't copy
         src = Path(sys.executable).resolve()
         target = _INSTALL_PATH
-        if src != target.resolve() if target.exists() else src != target:
-            target.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(src, target)
-            target.chmod(target.stat().st_mode | 0o755)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        if src != (target.resolve() if target.exists() else target):
+            # Write to a temp file then atomically rename into place.
+            # A direct overwrite raises ETXTBSY while the binary is running.
+            tmp = target.parent / (target.name + ".new")
+            shutil.copy2(src, tmp)
+            tmp.chmod(tmp.stat().st_mode | 0o755)
+            tmp.rename(target)
         return target
 
     def _exec_command(self, binary: Path) -> str:

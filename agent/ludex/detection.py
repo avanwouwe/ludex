@@ -92,17 +92,23 @@ def detect(activities: List[ActivityType], cpu_interval: float = 1.0) -> Dict[st
 def list_active_candidates(cpu_interval: float = 0.2, min_cpu: float = 1.0) -> List[dict]:
     """Currently CPU-using processes, ranked by CPU% — candidates for detect-app."""
     procs = _sample_cpu(cpu_interval)
-    rows = []
+    # Get CPU values for all first (fast — already primed), then read attrs only for
+    # the active subset. On macOS, exe()/cmdline() are expensive per-process syscalls
+    # that dominate the cost when called for all ~200 processes.
+    active = []
     for p in procs:
+        try:
+            cpu = p.cpu_percent(None)
+            if cpu >= min_cpu:
+                active.append((p, cpu))
+        except psutil.Error:
+            pass
+    rows = []
+    for p, cpu in active:
         attrs = read_attrs(p)
         if not attrs:
             continue
-        try:
-            cpu = p.cpu_percent(None)
-        except psutil.Error:
-            continue
-        if cpu >= min_cpu:
-            rows.append({"pid": p.pid, "cpu": cpu, **attrs})
+        rows.append({"pid": p.pid, "cpu": cpu, **attrs})
     result = sorted(rows, key=lambda r: r["cpu"], reverse=True)
     for r in result:
         r["keyword"] = suggest_keyword(r)
