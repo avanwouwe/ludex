@@ -121,7 +121,7 @@ function renderInstall(a){
 
 function renderManage(a){
   var h=mkMsg(S.topMsg,S.topOk);
-  h+='<p style="font-size:13px;color:#6b7280">Connected to <b>'+esc(S.url)+'</b></p>';
+  h+='<p style="font-size:13px;color:#6b7280">Connected to backend</p>';
 
   // ── Detect App ─────────────────────────────────────────────────────────────
   h+='<h2>Add tracked activity</h2>'+

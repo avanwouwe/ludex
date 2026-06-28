@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import plistlib
 import re
+import shlex
 import shutil
 import subprocess
 import sys
@@ -85,6 +86,15 @@ class DarwinPlatform(Platform):
                 shutil.rmtree(dst_bundle)
             dst_bundle.parent.mkdir(parents=True, exist_ok=True)
             shutil.copytree(src_bundle, dst_bundle)
+            # Remove the source bundle after a short delay so Spotlight doesn't index two
+            # copies. Safe on macOS: the running process keeps its file descriptors open
+            # even after the directory is deleted from disk.
+            subprocess.Popen(
+                ["sh", "-c", f"sleep 3 && rm -rf {shlex.quote(str(src_bundle))}"],
+                start_new_session=True,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
         return _APP_BINARY
 
     def _program_args(self, binary: Path) -> list:
